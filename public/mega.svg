@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Capa_2" data-name="Capa 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 291 291">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#Degradado_sin_nombre_4);
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke-width: 0px;
+      }
+
+      .cls-2 {
+        fill: url(#Degradado_sin_nombre_3);
+      }
+
+      .cls-3 {
+        fill: url(#Degradado_sin_nombre_2);
+      }
+
+      .cls-4 {
+        fill: url(#Degradado_sin_nombre);
+      }
+    </style>
+    <radialGradient id="Degradado_sin_nombre" data-name="Degradado sin nombre" cx="-108.06" cy="-142.35" fx="-108.06" fy="-142.35" r="6.4" gradientTransform="translate(4626.19 5917.08) scale(41.1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6cb3d9"/>
+      <stop offset=".3" stop-color="#0079b0"/>
+      <stop offset=".6" stop-color="#2d4384"/>
+      <stop offset=".8" stop-color="#292746"/>
+      <stop offset="1" stop-color="#1e171c"/>
+    </radialGradient>
+    <radialGradient id="Degradado_sin_nombre_2" data-name="Degradado sin nombre 2" cx="-111.39" cy="-142.85" fx="-111.39" fy="-142.85" r="6.4" gradientTransform="translate(5848.48 7320.76) scale(51.2)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0079b0"/>
+      <stop offset=".6" stop-color="#2d4384"/>
+      <stop offset=".8" stop-color="#292746"/>
+      <stop offset="1" stop-color="#1e171c"/>
+    </radialGradient>
+    <radialGradient id="Degradado_sin_nombre_3" data-name="Degradado sin nombre 3" cx="-109.07" cy="-142.76" fx="-109.07" fy="-142.76" r="6.4" gradientTransform="translate(4613.4 5887.6) scale(41)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset=".2" stop-color="#fff"/>
+      <stop offset=".6" stop-color="#dee5ea"/>
+      <stop offset=".7" stop-color="#d1dae2"/>
+      <stop offset=".9" stop-color="#7d8082"/>
+      <stop offset="1" stop-color="#272123"/>
+    </radialGradient>
+    <radialGradient id="Degradado_sin_nombre_4" data-name="Degradado sin nombre 4" cx="-109.6" cy="-142.69" fx="-109.6" fy="-142.69" r="6.4" gradientTransform="translate(4868.89 6204.68) scale(43.1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a7bdda"/>
+      <stop offset=".5" stop-color="#006196"/>
+      <stop offset=".8" stop-color="#362f64"/>
+      <stop offset="1" stop-color="#1e171a"/>
+    </radialGradient>
+  </defs>
+  <g id="Capa_1-2" data-name="Capa 1">
+    <g>
+      <path class="cls-4" d="M291,145.7C291,65.3,225.9,0,145.5,0S0,65.3,0,145.7s65.2,145.3,145.5,145.3,145.5-65,145.5-145.3Z"/>
+      <path class="cls-3" d="M63.6,66.8C29.1,104.3,10.8,153.5,12.5,204.6c2.4,5.3,5,10.5,8,15.4,9.3-49.9,33.9-96.1,71.3-132.2-4.9-10.9-15.3-18.8-28.2-21h0ZM199.6,142.3c-62.7,20.3-113.8,63.1-142.2,119,4.5,3.4,9.2,6.4,14.1,9.4,37.9-44.3,91.5-75.5,152.7-87.1.1-16.9-9.1-32.7-24.6-41.3ZM233.9,102.5c-5.4-19.2-19.8-35.7-40.3-44.7C107.5,85.6,47,154.3,31.8,236.2c4.4,5.6,9.2,10.9,14.3,15.8,31.7-74,99.7-131,187.8-149.4v-.1Z"/>
+      <path class="cls-2" d="M222.7,95c-6.1-19.1-20.4-35.3-40.1-43.6C102.4,82.2,45.7,153.5,31.4,235.8c4.3,5.6,9,10.5,14,15.4,30-75.1,94.1-134.8,177.2-156.2h.1ZM191.9,136.3c-59.7,22.2-108.3,67.2-135.3,124.3,4.4,3.4,8.9,6.7,13.6,9.4,36.5-46.2,88.2-79.6,147.4-93.1-.8-16.9-10.4-32.3-25.7-40.6ZM60.7,65C28.4,103.7,11,153.6,12.6,204.7c2.3,5.3,4.9,10.5,7.8,15,8.8-50.3,32.2-97.3,67.2-134.4-4.8-10.5-14.7-18.4-26.9-20.3Z"/>
+      <path class="cls-1" d="M192.2,135.5h-.5c-29.7,11.3-56.7,27.8-80.1,49.2-23.3,21.8-42,46.9-55.5,75.5l1,.8h0c13.4-28.5,32-53.7,55.2-75.1,23.3-21.4,50-37.9,79.4-48.8,14.6,7.9,24.1,22.9,25,39.4-57.9,13.1-110.1,46.2-147.2,93.1h0l1.2.7h0c37-46.6,89.2-79.6,146.9-92.8h.5v-.7c-.8-17.3-10.8-33-26-41.3h.1ZM88.4,85.2l-.2-.4c-5-11.3-15.3-18.8-27.4-20.7h-.4l-.2.4C27.8,103.6,10.6,152.7,11.9,203.1c.4,1.1.9,2.3,1.3,3,0-.7.1-1.1,0-1.5-1.6-50.7,15.4-99.9,47.8-138.9,11.4,1.9,21,9,25.9,19.5C52,122.4,28.9,168.5,19.9,218.9c.3.7.5,1.1.8,1.5h.2v-.4h.2c8.9-50.7,32.1-96.9,67.1-134.4l.3-.4h-.1ZM223.3,95c-6.4-19.9-21.1-36.1-40.5-43.9l-.2-.4-.2.4c-39.2,15-74,40.2-100.6,72.8-26.2,32.3-43.8,70.6-50.9,111.5l1,1.1v-.4h.2v-.4c7.1-40.6,24.6-78.9,50.7-111.2,26.4-32.3,60.9-57.4,99.8-72.5,18.6,7.9,32.9,23.3,39.3,42.4-40,10.5-77.4,30.4-108.1,57.8-30,27-53.8,60.8-68.8,98.4l1,.7h.1c14.9-37.5,38.6-71.3,68.5-98,30.7-27.4,68.2-47.3,108.3-57.8h.7l-.2-.7-.1.2Z"/>
+    </g>
+  </g>
+</svg>

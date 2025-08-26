@@ -1,0 +1,20 @@
+.banner-img-stack {
+  position: relative;
+  width: 100px;
+  height: 48px;
+}
+.banner-img-bg {
+  width: 100px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.banner-img-fg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 48px;
+  object-fit: contain;
+  pointer-events: none;
+}
