@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card, Title, Text, Button } from "@tremor/react";
 import { API_BASE_URL, S3_BASE_URL } from "../config";
@@ -35,6 +35,19 @@ export default function LegalSeccionDetalle() {
     });
     const [adding, setAdding] = useState(false);
     const [addError, setAddError] = useState("");
+
+    // Barra de progreso
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploading, setUploading] = useState(false);
+
+    // Edición
+    const [editId, setEditId] = useState(null);
+    const [editLink, setEditLink] = useState(null);
+    const [editFile, setEditFile] = useState(null);
+    const [editing, setEditing] = useState(false);
+    const [editError, setEditError] = useState("");
+    const [editUploadProgress, setEditUploadProgress] = useState(0);
+    const [editUploading, setEditUploading] = useState(false);
 
     // Cargar sección
     useEffect(() => {
@@ -82,7 +95,7 @@ export default function LegalSeccionDetalle() {
         setLinks(links.filter(l => l.idLink !== idLink));
     };
 
-    // Agregar link o etiqueta
+    // Agregar link o etiqueta (con presigned URL y barra de progreso)
     const handleAddLink = async (e) => {
         e.preventDefault();
         setAddError("");
@@ -99,17 +112,49 @@ export default function LegalSeccionDetalle() {
                     setAdding(false);
                     return;
                 }
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("tipo", newLink.tipo);
-
-                const uploadRes = await fetch(`${API_BASE_URL}/api/upload`, {
+                // 1. Solicita la URL prefirmada
+                const presignedRes = await fetch(`${API_BASE_URL}/api/s3/presigned-url`, {
                     method: "POST",
-                    body: formData,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        filetype: file.type
+                    })
                 });
-                if (!uploadRes.ok) throw new Error("Error al subir archivo");
-                const uploadData = await uploadRes.json();
-                url = S3_BASE_URL + uploadData.filename;
+                if (!presignedRes.ok) throw new Error("No se pudo obtener URL prefirmada");
+                const { url: presignedUrl, key } = await presignedRes.json();
+
+                // 2. Sube el archivo directo a S3 con barra de progreso
+                setUploading(true);
+                setUploadProgress(0);
+                await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open("PUT", presignedUrl);
+                    xhr.setRequestHeader("Content-Type", file.type);
+                    xhr.upload.onprogress = (e) => {
+                        if (e.lengthComputable) {
+                            setUploadProgress(Math.round((e.loaded / e.total) * 100));
+                        }
+                    };
+                    xhr.onload = () => {
+                        setUploading(false);
+                        setUploadProgress(0);
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            resolve();
+                        } else {
+                            reject(new Error("Error al subir archivo a S3"));
+                        }
+                    };
+                    xhr.onerror = () => {
+                        setUploading(false);
+                        setUploadProgress(0);
+                        reject(new Error("Error al subir archivo a S3"));
+                    };
+                    xhr.send(file);
+                });
+
+                // 3. Construye la URL pública
+                url = S3_BASE_URL + key;
             } else {
                 if (!url) {
                     setAddError("La URL es obligatoria");
@@ -137,6 +182,107 @@ export default function LegalSeccionDetalle() {
             setAddError(err.message);
         } finally {
             setAdding(false);
+        }
+    };
+
+    // Edición
+    const startEdit = (link) => {
+        setEditId(link.idLink);
+        setEditLink({ ...link });
+        setEditFile(null);
+        setEditError("");
+        setEditUploadProgress(0);
+        setEditUploading(false);
+    };
+
+    const cancelEdit = () => {
+        setEditId(null);
+        setEditLink(null);
+        setEditFile(null);
+        setEditError("");
+        setEditUploadProgress(0);
+        setEditUploading(false);
+    };
+
+    const handleEditSave = async (e) => {
+        e.preventDefault();
+        setEditError("");
+        setEditing(true);
+
+        try {
+            let url = editLink.url;
+
+            if (editLink.tipo === "etiqueta") {
+                url = "";
+            } else if (["pdf", "xls", "mp3"].includes(editLink.tipo) && editFile) {
+                // Subir nuevo archivo si se seleccionó
+                const presignedRes = await fetch(`${API_BASE_URL}/api/s3/presigned-url`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        filename: editFile.name,
+                        filetype: editFile.type
+                    })
+                });
+                if (!presignedRes.ok) throw new Error("No se pudo obtener URL prefirmada");
+                const { url: presignedUrl, key } = await presignedRes.json();
+
+                setEditUploading(true);
+                setEditUploadProgress(0);
+                await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open("PUT", presignedUrl);
+                    xhr.setRequestHeader("Content-Type", editFile.type);
+                    xhr.upload.onprogress = (e) => {
+                        if (e.lengthComputable) {
+                            setEditUploadProgress(Math.round((e.loaded / e.total) * 100));
+                        }
+                    };
+                    xhr.onload = () => {
+                        setEditUploading(false);
+                        setEditUploadProgress(0);
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            resolve();
+                        } else {
+                            reject(new Error("Error al subir archivo a S3"));
+                        }
+                    };
+                    xhr.onerror = () => {
+                        setEditUploading(false);
+                        setEditUploadProgress(0);
+                        reject(new Error("Error al subir archivo a S3"));
+                    };
+                    xhr.send(editFile);
+                });
+
+                url = S3_BASE_URL + key;
+            } else if (["pdf", "xls", "mp3"].includes(editLink.tipo) && !editLink.url) {
+                setEditError("Debes seleccionar un archivo");
+                setEditing(false);
+                return;
+            } else if (!url && editLink.tipo !== "etiqueta") {
+                setEditError("La URL es obligatoria");
+                setEditing(false);
+                return;
+            }
+
+            // Actualiza el link en la base de datos
+            const res = await fetch(`${API_BASE_URL}/api/seccioneslegal/links/${editLink.idLink}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...editLink,
+                    url
+                })
+            });
+            if (!res.ok) throw new Error("No se pudo actualizar el enlace");
+            const data = await res.json();
+            setLinks(links.map(l => l.idLink === data.idLink ? data : l));
+            cancelEdit();
+        } catch (err) {
+            setEditError(err.message);
+        } finally {
+            setEditing(false);
         }
     };
 
@@ -300,6 +446,18 @@ export default function LegalSeccionDetalle() {
                         Agregar
                     </Button>
                 </form>
+                {/* Barra de progreso de subida */}
+                {uploading && (
+                    <div className="w-full mb-2">
+                        <div className="bg-gray-200 rounded h-3">
+                            <div
+                                className="bg-blue-600 h-3 rounded"
+                                style={{ width: `${uploadProgress}%`, transition: "width 0.2s" }}
+                            />
+                        </div>
+                        <Text className="text-xs text-gray-600 mt-1">{uploadProgress}%</Text>
+                    </div>
+                )}
                 {addError && (
                     <Text className="text-red-500 mb-2">{addError}</Text>
                 )}
@@ -311,38 +469,126 @@ export default function LegalSeccionDetalle() {
                 ) : (
                     <ul className="space-y-2">
                         {links.map(link =>
-                            link.tipo === "etiqueta" ? (
-                                <li
-                                    key={link.idLink}
-                                    className="py-2 px-2 bg-gray-200 font-bold rounded text-gray-700 uppercase tracking-wider"
-                                >
-                                    {link.titulo}
-                                </li>
-                            ) : (
-                                <li key={link.idLink} className="flex items-center justify-between bg-gray-50 rounded p-3 border">
-                                    <a
-                                        href={link.url}
-                                        target={link.tipo === "interno" ? "_self" : "_blank"}
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-blue-700 hover:underline"
+                            <li key={link.idLink} className="flex items-center justify-between bg-gray-50 rounded p-3 border">
+                                {editId === link.idLink ? (
+                                    <form
+                                        onSubmit={handleEditSave}
+                                        className="flex flex-1 flex-wrap items-center gap-2"
                                     >
-                                        {link.tipo === "pdf" && <span>📄</span>}
-                                        {link.tipo === "xls" && <span>📊</span>}
-                                        {link.tipo === "mp3" && <span>🎧</span>}
-                                        {link.tipo === "interno" && <span>🔗</span>}
-                                        {link.tipo === "externo" && <span>🌐</span>}
-                                        {link.titulo}
-                                    </a>
-                                    <Button
-                                        color="red"
-                                        size="xs"
-                                        className="ml-2 bg-red-600 hover:bg-red-700 text-white border-none"
-                                        onClick={() => handleDeleteLink(link.idLink)}
-                                    >
-                                        <TrashIcon className="w-4 h-4" />
-                                    </Button>
-                                </li>
-                            )
+                                        <input
+                                            type="text"
+                                            value={editLink.titulo}
+                                            onChange={e => setEditLink({ ...editLink, titulo: e.target.value })}
+                                            className="border rounded px-2 py-1 flex-1 min-w-[120px]"
+                                            required
+                                        />
+                                        <select
+                                            value={editLink.tipo}
+                                            onChange={e => setEditLink({ ...editLink, tipo: e.target.value, url: "" })}
+                                            className="border rounded px-2 py-1 min-w-[100px]"
+                                        >
+                                            <option value="pdf">PDF</option>
+                                            <option value="xls">XLS</option>
+                                            <option value="mp3">MP3</option>
+                                            <option value="interno">Interno</option>
+                                            <option value="externo">Externo</option>
+                                            <option value="etiqueta">Etiqueta</option>
+                                        </select>
+                                        {editLink.tipo === "etiqueta" ? null : (
+                                            ["pdf", "xls", "mp3"].includes(editLink.tipo) ? (
+                                                <input
+                                                    type="file"
+                                                    accept={
+                                                        editLink.tipo === "pdf"
+                                                            ? ".pdf"
+                                                            : editLink.tipo === "xls"
+                                                                ? ".xls,.xlsx"
+                                                                : ".mp3"
+                                                    }
+                                                    onChange={e => setEditFile(e.target.files[0])}
+                                                    className="border rounded px-2 py-1 flex-1 min-w-[120px]"
+                                                />
+                                            ) : (
+                                                <input
+                                                    type="text"
+                                                    value={editLink.url}
+                                                    onChange={e => setEditLink({ ...editLink, url: e.target.value })}
+                                                    className="border rounded px-2 py-1 flex-1 min-w-[120px]"
+                                                    required
+                                                />
+                                            )
+                                        )}
+                                        <Button
+                                            color="blue"
+                                            size="xs"
+                                            type="submit"
+                                            loading={editing}
+                                            disabled={editing}
+                                        >
+                                            Guardar
+                                        </Button>
+                                        <Button
+                                            color="gray"
+                                            size="xs"
+                                            type="button"
+                                            onClick={cancelEdit}
+                                            className="ml-1"
+                                        >
+                                            Cancelar
+                                        </Button>
+                                        {editUploading && (
+                                            <div className="w-full">
+                                                <div className="bg-gray-200 rounded h-2 mt-1">
+                                                    <div
+                                                        className="bg-blue-600 h-2 rounded"
+                                                        style={{ width: `${editUploadProgress}%`, transition: "width 0.2s" }}
+                                                    />
+                                                </div>
+                                                <Text className="text-xs text-gray-600">{editUploadProgress}%</Text>
+                                            </div>
+                                        )}
+                                        {editError && (
+                                            <Text className="text-red-500">{editError}</Text>
+                                        )}
+                                    </form>
+                                ) : (
+                                    <Fragment>
+                                        {link.tipo === "etiqueta" ? (
+                                            <span className="py-2 px-2 bg-gray-200 font-bold rounded text-gray-700 uppercase tracking-wider flex-1">{link.titulo}</span>
+                                        ) : (
+                                            <a
+                                                href={link.url}
+                                                target={link.tipo === "interno" ? "_self" : "_blank"}
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 text-blue-700 hover:underline flex-1"
+                                            >
+                                                {link.tipo === "pdf" && <span>📄</span>}
+                                                {link.tipo === "xls" && <span>📊</span>}
+                                                {link.tipo === "mp3" && <span>🎧</span>}
+                                                {link.tipo === "interno" && <span>🔗</span>}
+                                                {link.tipo === "externo" && <span>🌐</span>}
+                                                {link.titulo}
+                                            </a>
+                                        )}
+                                        <Button
+                                            color="blue"
+                                            size="xs"
+                                            className="ml-2"
+                                            onClick={() => startEdit(link)}
+                                        >
+                                            <PencilSquareIcon className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                            color="red"
+                                            size="xs"
+                                            className="ml-2 bg-red-600 hover:bg-red-700 text-white border-none"
+                                            onClick={() => handleDeleteLink(link.idLink)}
+                                        >
+                                            <TrashIcon className="w-4 h-4" />
+                                        </Button>
+                                    </Fragment>
+                                )}
+                            </li>
                         )}
                     </ul>
                 )}

@@ -166,9 +166,9 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
               <SidebarMenu title="Legal">
                 <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
-                  onClick={() => navigate("/legal/documentos")}
+                  onClick={() => navigate("/legal/secciones")}
                 >
-                  Documentos Legales
+                  Secciones
                 </button>
                 <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
@@ -176,12 +176,7 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                 >
                   Términos y Condiciones
                 </button>
-                <button
-                  className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
-                  onClick={() => navigate("/legal/secciones")}
-                >
-                  Secciones
-                </button>
+
               </SidebarMenu>
             </>
           )}
@@ -241,7 +236,6 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/bannerhome/editar/:id" element={<BannerHomeEditar />} />
           <Route path="/bannerhome/nuevo" element={<BannerHomeNuevo />} />
           <Route path="/bannerAvisos/nuevo" element={<BannerAvisosNuevo />} />
-          <Route path="/legal/documentos" element={<PlaceholderComponent name="Documentos Legales" />} />
           <Route path="/legal/terminos" element={<PlaceholderComponent name="Términos y Condiciones" />} />
           <Route path="/legal/secciones" element={<LegalSecciones />} />
           <Route path="/secciones-legales" element={<LegalSecciones />} />
