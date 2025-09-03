@@ -8,6 +8,11 @@ import EditarSucursal from "../pages/EditarSucursal";
 import LegalSecciones from "../pages/LegalSecciones";
 import LegalSeccionForm from "../pages/LegalSeccionForm";
 import LegalSeccionDetalle from "../pages/LegalSeccionDetalle";
+import LegalTerminos from "../pages/LegalTerminos";
+import LegalTerminosList from "../pages/LegalTerminosList";
+import LegalTerminosDetalle from "../pages/LegalTerminosDetalle";
+import LegalTerminosForm from "../pages/LegalTerminosForm";
+
 
 
 // Importamos componentes placeholder para los que aún no existen
@@ -236,12 +241,15 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/bannerhome/editar/:id" element={<BannerHomeEditar />} />
           <Route path="/bannerhome/nuevo" element={<BannerHomeNuevo />} />
           <Route path="/bannerAvisos/nuevo" element={<BannerAvisosNuevo />} />
-          <Route path="/legal/terminos" element={<PlaceholderComponent name="Términos y Condiciones" />} />
           <Route path="/legal/secciones" element={<LegalSecciones />} />
           <Route path="/secciones-legales" element={<LegalSecciones />} />
           <Route path="/secciones-legales/nueva" element={<LegalSeccionForm />} />
           <Route path="/secciones-legales/editar/:idSeccionLegal" element={<LegalSeccionForm isEdit={true} />} />
           <Route path="/secciones-legales/:idSeccionLegal" element={<LegalSeccionDetalle />} />
+          <Route path="/legal/terminos" element={<LegalTerminosList />} />
+          <Route path="/legal/terminos/nuevo" element={<LegalTerminosForm />} />
+          <Route path="/legal/terminos/:id" element={<LegalTerminosDetalle />} />
+
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={
             <Card>
