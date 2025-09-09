@@ -12,6 +12,7 @@ import LegalTerminos from "../pages/LegalTerminos";
 import LegalTerminosList from "../pages/LegalTerminosList";
 import LegalTerminosDetalle from "../pages/LegalTerminosDetalle";
 import LegalTerminosForm from "../pages/LegalTerminosForm";
+import CuponeraSection from "../pages/CuponeraSection";
 
 
 
@@ -142,6 +143,14 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                   Banners Avisos
                 </button>
               </SidebarMenu>
+
+              {/* Cuponera como sección independiente */}
+              <button
+                className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 font-medium"
+                onClick={() => navigate("/cuponera")}
+              >
+                Cuponera
+              </button>
             </>
           )}
 
@@ -249,6 +258,9 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/legal/terminos" element={<LegalTerminosList />} />
           <Route path="/legal/terminos/nuevo" element={<LegalTerminosForm />} />
           <Route path="/legal/terminos/:id" element={<LegalTerminosDetalle />} />
+
+            {/* Cuponera */}
+            <Route path="/cuponera" element={<CuponeraSection />} />
 
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={
