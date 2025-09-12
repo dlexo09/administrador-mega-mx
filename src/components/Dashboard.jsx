@@ -12,6 +12,10 @@ import LegalTerminos from "../pages/LegalTerminos";
 import LegalTerminosList from "../pages/LegalTerminosList";
 import LegalTerminosDetalle from "../pages/LegalTerminosDetalle";
 import LegalTerminosForm from "../pages/LegalTerminosForm";
+import TriviasList from "../pages/TriviasList";
+import TriviasForm from "../pages/TriviasForm";
+import TriviasDetalle from "../pages/TriviasDetalle";
+
 
 
 
@@ -157,7 +161,7 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                 </button>
                 <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
-                  onClick={() => navigate("/trivias/redes")}
+                  onClick={() => navigate("/redes-sociales")}
                 >
                   Redes Sociales
                 </button>
@@ -249,6 +253,11 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/legal/terminos" element={<LegalTerminosList />} />
           <Route path="/legal/terminos/nuevo" element={<LegalTerminosForm />} />
           <Route path="/legal/terminos/:id" element={<LegalTerminosDetalle />} />
+          <Route path="/trivias/gestionar" element={<TriviasList />} />
+          <Route path="/trivias/nueva" element={<TriviasForm />} />
+          <Route path="/trivias/editar/:id" element={<TriviasForm />} />
+          <Route path="/trivias/:id" element={<TriviasDetalle />} />
+
 
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={
