@@ -1,21 +1,28 @@
 
 import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Card, Title, Text, Button } from "@tremor/react";
 import { EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { serverAPIsLocal } from "../config";
 
 export default function CuponeraSection() {
+  const navigate = useNavigate();
   const [cupones, setCupones] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  fetch(`${serverAPIsLocal}/api/cuponera`)
+    fetch(`${serverAPIsLocal}/api/cuponera`)
       .then((res) => res.json())
       .then((data) => {
         setCupones(data);
         setLoading(false);
       });
   }, []);
+
+  const handleNuevoCupon = () => {
+    navigate('/cuponera/nuevo');
+  };
+
 
   return (
     <Card className="bg-white shadow-lg rounded-xl p-6">
@@ -24,7 +31,7 @@ export default function CuponeraSection() {
           <Title>Cuponera</Title>
           <Text className="text-gray-500">Administración de cupones</Text>
         </div>
-        <Button color="blue" className="shadow">+ Nuevo Cupón</Button>
+        <Button color="blue" className="shadow" onClick={handleNuevoCupon}>+ Nuevo Cupón</Button>
       </div>
       <div className="overflow-x-auto mt-2 rounded-lg shadow">
         <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg">
@@ -69,13 +76,14 @@ export default function CuponeraSection() {
                     </span>
                   </td>
                   <td className="px-2 py-2 space-x-2 text-left">
-                    <button
+                    <Link
+                      to={`/cuponera/${item.IDCuponera}`}
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 rounded hover:bg-blue-100 transition"
                       title="Ver"
                     >
                       <EyeIcon className="w-4 h-4" />
                       Ver
-                    </button>
+                    </Link>
                     <button
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition"
                       title="Editar"
@@ -96,7 +104,7 @@ export default function CuponeraSection() {
             )}
           </tbody>
         </table>
-      </div>
+  </div>
     </Card>
   );
 }
