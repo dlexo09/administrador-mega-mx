@@ -16,6 +16,7 @@ import TriviasList from "../pages/TriviasList";
 import TriviasForm from "../pages/TriviasForm";
 import TriviasDetalle from "../pages/TriviasDetalle";
 
+import CuponeraSection from "../pages/CuponeraSection";
 
 
 
@@ -146,6 +147,14 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                   Banners Avisos
                 </button>
               </SidebarMenu>
+
+              {/* Cuponera como sección independiente */}
+              <button
+                className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 font-medium"
+                onClick={() => navigate("/cuponera")}
+              >
+                Cuponera
+              </button>
             </>
           )}
 
@@ -258,6 +267,9 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/trivias/editar/:id" element={<TriviasForm />} />
           <Route path="/trivias/:id" element={<TriviasDetalle />} />
 
+
+            {/* Cuponera */}
+            <Route path="/cuponera" element={<CuponeraSection />} />
 
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={

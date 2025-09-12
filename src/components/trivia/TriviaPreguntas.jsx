@@ -113,7 +113,7 @@ export default function TriviaPreguntas({ triviaId }) {
     setCurrentPregunta({
       pregunta: "",
       idtriviaConfig: triviaId,
-      tipoPregunta: "multiple",
+      tipoPregunta: "1",
       a: "",
       b: "",
       c: "",
@@ -248,9 +248,9 @@ export default function TriviaPreguntas({ triviaId }) {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {pregunta.tipoPregunta === 'multiple' ? 'Opción múltiple' : 
-                      pregunta.tipoPregunta === 'abierta' ? 'Respuesta abierta' : 
-                      pregunta.tipoPregunta === 'si_no' ? 'Sí/No' : 
+                      {pregunta.tipoPregunta == '1' ? 'Opción múltiple' : 
+                      pregunta.tipoPregunta == '2' ? 'Respuesta abierta' : 
+                      pregunta.tipoPregunta === '3' ? 'Sí/No' : 
                       pregunta.tipoPregunta}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -344,9 +344,9 @@ export default function TriviaPreguntas({ triviaId }) {
                       onChange={(e) => setCurrentPregunta({...currentPregunta, tipoPregunta: e.target.value})}
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     >
-                      <option value="multiple">Opción múltiple</option>
-                      <option value="abierta">Respuesta abierta</option>
-                      <option value="si_no">Sí/No</option>
+                      <option value="1">Opción múltiple</option>
+                      <option value="2">Respuesta abierta</option>
+                      <option value="3">Sí/No</option>
                     </select>
                   </div>
 
@@ -364,7 +364,7 @@ export default function TriviaPreguntas({ triviaId }) {
                   </div>
                 </div>
 
-                {currentPregunta.tipoPregunta === 'multiple' && (
+                {currentPregunta.tipoPregunta === '1' && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>

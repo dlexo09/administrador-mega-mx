@@ -1,0 +1,102 @@
+
+import { useEffect, useState } from "react";
+import { Card, Title, Text, Button } from "@tremor/react";
+import { EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { serverAPIsLocal } from "../config";
+
+export default function CuponeraSection() {
+  const [cupones, setCupones] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+  fetch(`${serverAPIsLocal}/api/cuponera`)
+      .then((res) => res.json())
+      .then((data) => {
+        setCupones(data);
+        setLoading(false);
+      });
+  }, []);
+
+  return (
+    <Card className="bg-white shadow-lg rounded-xl p-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-2">
+        <div>
+          <Title>Cuponera</Title>
+          <Text className="text-gray-500">Administración de cupones</Text>
+        </div>
+        <Button color="blue" className="shadow">+ Nuevo Cupón</Button>
+      </div>
+      <div className="overflow-x-auto mt-2 rounded-lg shadow">
+        <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-2 text-left">ID</th>
+              <th className="px-4 py-2 text-left">Nombre</th>
+              <th className="px-4 py-2 text-left">Imagen</th>
+              <th className="px-4 py-2 text-left">Estatus</th>
+              <th className="px-2 py-2 text-left">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={4} className="text-center py-4">
+                  <Text>Cargando...</Text>
+                </td>
+              </tr>
+            ) : cupones.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="text-center py-4">
+                  <Text>No hay cupones.</Text>
+                </td>
+              </tr>
+            ) : (
+              cupones.map((item) => (
+                <tr key={item.IDCuponera} className="border-b hover:bg-blue-50 transition-colors">
+                  <td className="px-4 py-2">{item.IDCuponera}</td>
+                  <td className="px-4 py-2">{item.NombreCupon}</td>
+                  <td className="px-4 py-2">
+                    <img src={item.ImgPc} alt={item.NombreCupon} className="h-12 max-w-[100px] object-contain border rounded" />
+                  </td>
+                  <td className="px-4 py-2">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-bold border ${item.Status === 1
+                        ? "bg-green-100 text-green-700 border-green-300"
+                        : "bg-red-100 text-red-700 border-red-300"
+                      }`}
+                    >
+                      {item.Status === 1 ? "ACTIVO" : "INACTIVO"}
+                    </span>
+                  </td>
+                  <td className="px-2 py-2 space-x-2 text-left">
+                    <button
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 rounded hover:bg-blue-100 transition"
+                      title="Ver"
+                    >
+                      <EyeIcon className="w-4 h-4" />
+                      Ver
+                    </button>
+                    <button
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition"
+                      title="Editar"
+                    >
+                      <PencilSquareIcon className="w-4 h-4" />
+                      Editar
+                    </button>
+                    <button
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
+                      title="Eliminar"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
