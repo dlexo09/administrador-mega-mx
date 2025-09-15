@@ -51,11 +51,19 @@ export default function CuponeraDetalle() {
           <div><span className="font-semibold">Enlace:</span> <span className="break-all">{cupon.LinkBoton}</span></div>
           <div>
             <span className="font-semibold">Imagen PC:</span><br />
-            <img src={cupon.ImgPc} alt={cupon.NombreCupon} className="h-24 max-w-full object-contain border rounded mt-1" />
+            <img 
+              src={cupon.ImgPc} 
+              alt={cupon.NombreCupon} 
+              className="h-24 max-w-full object-contain border rounded mt-1"
+            />
           </div>
           <div>
             <span className="font-semibold">Imagen Móvil:</span><br />
-            <img src={cupon.ImgMovil} alt={cupon.NombreCupon} className="h-24 max-w-full object-contain border rounded mt-1" />
+            <img 
+              src={cupon.ImgMovil} 
+              alt={cupon.NombreCupon} 
+              className="h-24 max-w-full object-contain border rounded mt-1"
+            />
           </div>
         </div>
       ) : null}

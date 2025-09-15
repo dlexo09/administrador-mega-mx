@@ -15,6 +15,7 @@ import LegalTerminosForm from "../pages/LegalTerminosForm";
 import CuponeraSection from "../pages/CuponeraSection";
 import CuponeraDetalle from "../pages/CuponeraDetalle";
 import CuponeraNuevo from "../pages/CuponeraNuevo";
+import CuponeraEditar from "../pages/CuponeraEditar";
 
 
 
@@ -265,6 +266,7 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
             <Route path="/cuponera" element={<CuponeraSection />} />
             <Route path="/cuponera/nuevo" element={<CuponeraNuevo />} />
             <Route path="/cuponera/:id" element={<CuponeraDetalle />} />
+            <Route path="/cuponera/editar/:id" element={<CuponeraEditar />} />
 
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={

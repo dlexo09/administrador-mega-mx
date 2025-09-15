@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, Title, Text, Button } from "@tremor/react";
@@ -10,14 +9,43 @@ export default function CuponeraSection() {
   const [cupones, setCupones] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch(`${serverAPIsLocal}/api/cuponera`)
+  const fetchCupones = () => {
+    setLoading(true);
+    fetch(`${serverAPIsLocal}/api/cuponera?all=true`)
       .then((res) => res.json())
       .then((data) => {
         setCupones(data);
         setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching cupones:', err);
+        setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchCupones();
   }, []);
+
+  const handleEliminarCupon = async (id) => {
+    if (!window.confirm('¿Seguro que deseas eliminar este cupón?')) return;
+    try {
+      const response = await fetch(`${serverAPIsLocal}/api/cuponera/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.status === 204) {
+        alert('Cupón eliminado exitosamente');
+        fetchCupones(); // Recargar la lista
+      } else if (response.status === 404) {
+        alert('Cupón no encontrado');
+      } else {
+        alert('Error al eliminar el cupón');
+      }
+    } catch (err) {
+      console.error('Error eliminando cupón:', err);
+      alert('Error al eliminar el cupón');
+    }
+  };
 
   const handleNuevoCupon = () => {
     navigate('/cuponera/nuevo');
@@ -63,7 +91,11 @@ export default function CuponeraSection() {
                   <td className="px-4 py-2">{item.IDCuponera}</td>
                   <td className="px-4 py-2">{item.NombreCupon}</td>
                   <td className="px-4 py-2">
-                    <img src={item.ImgPc} alt={item.NombreCupon} className="h-12 max-w-[100px] object-contain border rounded" />
+                    <img 
+                      src={item.ImgPc} 
+                      alt={item.NombreCupon} 
+                      className="h-12 max-w-[100px] object-contain border rounded"
+                    />
                   </td>
                   <td className="px-4 py-2">
                     <span
@@ -85,6 +117,7 @@ export default function CuponeraSection() {
                       Ver
                     </Link>
                     <button
+                      onClick={() => navigate(`/cuponera/editar/${item.IDCuponera}`)}
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition"
                       title="Editar"
                     >
@@ -94,6 +127,7 @@ export default function CuponeraSection() {
                     <button
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
                       title="Eliminar"
+                      onClick={() => handleEliminarCupon(item.IDCuponera)}
                     >
                       <TrashIcon className="w-4 h-4" />
                       Eliminar

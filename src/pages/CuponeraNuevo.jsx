@@ -16,11 +16,18 @@ const CuponeraNuevo = () => {
   });
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
+    const { name, value, type, checked } = e.target;
+    if (name === 'Status' && type === 'checkbox') {
+      setFormData(prevState => ({
+        ...prevState,
+        Status: checked ? 'Activo' : 'Inactivo'
+      }));
+    } else {
+      setFormData(prevState => ({
+        ...prevState,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -28,8 +35,11 @@ const CuponeraNuevo = () => {
     setLoading(true);
 
     try {
+      // Convertir Status a 1 o 0
+      const statusValue = formData.Status === 'Activo' ? 1 : 0;
       const dataToSend = {
         ...formData,
+        Status: statusValue,
         CreateAt: new Date().toISOString()
       };
 
@@ -96,21 +106,26 @@ const CuponeraNuevo = () => {
               />
             </div>
 
-            {/* Status */}
+            {/* Status Switch */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Status *
               </label>
-              <select
-                name="Status"
-                value={formData.Status}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-              </select>
+              <div className="flex items-center space-x-3">
+                <span className={`text-sm font-semibold ${formData.Status === 'Activo' ? 'text-green-600' : 'text-gray-400'}`}>Activo</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="Status"
+                    checked={formData.Status === 'Activo'}
+                    onChange={handleInputChange}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 transition-all duration-200"></div>
+                  <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white border border-gray-300 rounded-full transition-transform duration-200 peer-checked:translate-x-5"></div>
+                </label>
+                <span className={`text-sm font-semibold ${formData.Status === 'Inactivo' ? 'text-red-600' : 'text-gray-400'}`}>Inactivo</span>
+              </div>
             </div>
 
             {/* Fecha de Inicio */}
@@ -185,9 +200,6 @@ const CuponeraNuevo = () => {
                   src={formData.ImgPc} 
                   alt="Preview PC" 
                   className="w-full h-32 object-cover border rounded-md"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
                 />
               </div>
             )}
@@ -199,9 +211,6 @@ const CuponeraNuevo = () => {
                   src={formData.ImgMovil} 
                   alt="Preview Móvil" 
                   className="w-full h-32 object-cover border rounded-md"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
                 />
               </div>
             )}
