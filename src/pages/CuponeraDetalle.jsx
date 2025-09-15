@@ -53,7 +53,7 @@ export default function CuponeraDetalle() {
             <span className="font-semibold">Imagen PC:</span><br />
             <img 
               src={cupon.ImgPc} 
-              alt={cupon.NombreCupon} 
+              alt={cupon.NombreCupon}  
               className="h-24 max-w-full object-contain border rounded mt-1"
             />
           </div>

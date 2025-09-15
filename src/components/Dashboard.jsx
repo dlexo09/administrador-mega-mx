@@ -17,7 +17,7 @@ import CuponeraDetalle from "../pages/CuponeraDetalle";
 import CuponeraNuevo from "../pages/CuponeraNuevo";
 import CuponeraEditar from "../pages/CuponeraEditar";
 
-
+ 
 
 // Importamos componentes placeholder para los que aún no existen
 // Esto evita errores 500 por componentes no encontrados

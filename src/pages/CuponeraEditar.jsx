@@ -259,5 +259,5 @@ const CuponeraEditar = () => {
     </div>
   );
 };
-
+ 
 export default CuponeraEditar;
