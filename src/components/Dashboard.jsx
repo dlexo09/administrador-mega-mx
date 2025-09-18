@@ -17,8 +17,11 @@ import TriviasForm from "../pages/TriviasForm";
 import TriviasDetalle from "../pages/TriviasDetalle";
 
 import CuponeraSection from "../pages/CuponeraSection";
+import CuponeraDetalle from "../pages/CuponeraDetalle";
+import CuponeraNuevo from "../pages/CuponeraNuevo";
+import CuponeraEditar from "../pages/CuponeraEditar";
 
-
+ 
 
 // Importamos componentes placeholder para los que aún no existen
 // Esto evita errores 500 por componentes no encontrados
@@ -270,6 +273,9 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
 
             {/* Cuponera */}
             <Route path="/cuponera" element={<CuponeraSection />} />
+            <Route path="/cuponera/nuevo" element={<CuponeraNuevo />} />
+            <Route path="/cuponera/:id" element={<CuponeraDetalle />} />
+            <Route path="/cuponera/editar/:id" element={<CuponeraEditar />} />
 
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={
