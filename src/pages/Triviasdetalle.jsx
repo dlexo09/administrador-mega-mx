@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card, Title, Text, Badge, Button } from "@tremor/react";
 import { API_BASE_URL, S3_BASE_URL } from "../config";
-import { ArrowLeftIcon, PencilSquareIcon, TrashIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, PencilSquareIcon, TrashIcon, InformationCircleIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import TriviaPreguntas from "../components/trivia/TriviaPreguntas";
 
 // Función para determinar si una cadena es una URL completa
@@ -49,7 +49,7 @@ export default function TriviasDetalle() {
       const res = await fetch(`${API_BASE_URL}/api/sucursales`);
       console.log("[LOG] sucursales status:", res.status);
       if (!res.ok) throw new Error(`Error ${res.status}`);
-      
+
       const data = await res.json();
       const norm = Array.isArray(data)
         ? data.map(s => ({
@@ -59,7 +59,7 @@ export default function TriviasDetalle() {
           label: s.sucursalName
         }))
         : [];
-        
+
       console.log("[LOG] sucursales fetched count:", norm.length);
       setSucursalesDisponibles(norm);
       return norm;
@@ -76,19 +76,19 @@ export default function TriviasDetalle() {
   useEffect(() => {
     const fetchSucursalesAsociadas = async () => {
       if (!id) return;
-      
+
       setLoadingSucursales(true);
       try {
         console.log("[LOG] Fetch permisosSucursal for Trivias idObjeto=", id);
         const res = await fetch(`${API_BASE_URL}/api/permisosSucursal?objetoName=Trivias&idObjeto=${id}`);
         console.log("[LOG] permisosSucursal status:", res.status);
-        
+
         if (!res.ok) {
           console.warn("[WARN] permisosSucursal no OK -> sucursalesAsociadas = []");
           setSucursalesAsociadas([]);
           return;
         }
-        
+
         const permisos = await res.json();
         console.log("[LOG] permisos raw:", permisos);
 
@@ -107,11 +107,11 @@ export default function TriviasDetalle() {
         console.log("[LOG] sucursales asociadas encontradas:", asociadas.length, asociadas);
 
         // setear sucursales asociadas
-        setSucursalesAsociadas(asociadas.map(s => ({ 
-          idSucursal: s.idSucursal, 
-          sucursalName: s.sucursalName 
+        setSucursalesAsociadas(asociadas.map(s => ({
+          idSucursal: s.idSucursal,
+          sucursalName: s.sucursalName
         })));
-        
+
       } catch (e) {
         console.error("[ERROR] cargar sucursales asociadas:", e);
         setSucursalesAsociadas([]);
@@ -119,12 +119,12 @@ export default function TriviasDetalle() {
         setLoadingSucursales(false);
       }
     };
-    
+
     if (id) fetchSucursalesAsociadas();
   }, [id]);
 
   const handleImageError = (field) => {
-    setImageErrors(prev => ({...prev, [field]: true}));
+    setImageErrors(prev => ({ ...prev, [field]: true }));
   };
 
   // Función para eliminar trivia
@@ -149,6 +149,26 @@ export default function TriviasDetalle() {
       alert("Error al eliminar: " + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDescargarRespuestas = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/trivias/descargar-respuestas/${id}`);
+      if (!res.ok) throw new Error("No se pudo descargar el archivo");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Crear un enlace temporal para descargar
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `respuestas_trivia_${id}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Error al descargar respuestas: " + err.message);
     }
   };
 
@@ -195,16 +215,15 @@ export default function TriviasDetalle() {
         </div>
         <div className="p-4">
           <div className="flex items-center gap-4">
-            <span 
-              className={`px-4 py-2 rounded-md text-white font-bold ${
-                trivia.status === 1 ? "bg-green-600" : "bg-red-600"
-              }`}
+            <span
+              className={`px-4 py-2 rounded-md text-white font-bold ${trivia.status === 1 ? "bg-green-600" : "bg-red-600"
+                }`}
             >
               {trivia.status === 1 ? "ACTIVA" : "INACTIVA"}
             </span>
             <span className="text-gray-600">
-              {trivia.status === 1 
-                ? "La trivia está publicada y visible para los usuarios" 
+              {trivia.status === 1
+                ? "La trivia está publicada y visible para los usuarios"
                 : "La trivia está en modo borrador (no visible)"
               }
             </span>
@@ -271,10 +290,10 @@ export default function TriviasDetalle() {
               <div>
                 <Text className="font-medium">Banner Principal:</Text>
                 <div className="relative">
-                  <img 
-                    src={isFullUrl(trivia.bannerPrincipal) ? trivia.bannerPrincipal : `${S3_BASE_URL}/uploads/bannerTrivias/${trivia.bannerPrincipal}`} 
-                    alt="Banner principal" 
-                    className="w-full h-32 object-cover rounded mt-2" 
+                  <img
+                    src={isFullUrl(trivia.bannerPrincipal) ? trivia.bannerPrincipal : `${S3_BASE_URL}/uploads/bannerTrivias/${trivia.bannerPrincipal}`}
+                    alt="Banner principal"
+                    className="w-full h-32 object-cover rounded mt-2"
                     onError={() => handleImageError('bannerPrincipal')}
                   />
                   {imageErrors.bannerPrincipal && (
@@ -288,14 +307,14 @@ export default function TriviasDetalle() {
                 </Text>
               </div>
             )}
-            
+
             {trivia.bannerMovil && (
               <div>
                 <Text className="font-medium">Banner Móvil:</Text>
                 <div className="relative">
-                  <img 
-                    src={isFullUrl(trivia.bannerMovil) ? trivia.bannerMovil : `${S3_BASE_URL}/uploads/bannerTrivias/${trivia.bannerMovil}`} 
-                    alt="Banner móvil" 
+                  <img
+                    src={isFullUrl(trivia.bannerMovil) ? trivia.bannerMovil : `${S3_BASE_URL}/uploads/bannerTrivias/${trivia.bannerMovil}`}
+                    alt="Banner móvil"
                     className="w-full h-32 object-cover rounded mt-2"
                     onError={() => handleImageError('bannerMovil')}
                   />
@@ -310,14 +329,14 @@ export default function TriviasDetalle() {
                 </Text>
               </div>
             )}
-            
+
             {trivia.logoMarca && (
               <div>
                 <Text className="font-medium">Logo Marca:</Text>
                 <div className="relative">
-                  <img 
-                    src={isFullUrl(trivia.logoMarca) ? trivia.logoMarca : `${S3_BASE_URL}/uploads/bannerTrivias/${trivia.logoMarca}`} 
-                    alt="Logo marca" 
+                  <img
+                    src={isFullUrl(trivia.logoMarca) ? trivia.logoMarca : `${S3_BASE_URL}/uploads/bannerTrivias/${trivia.logoMarca}`}
+                    alt="Logo marca"
                     className="w-24 h-24 object-cover rounded mt-2"
                     onError={() => handleImageError('logoMarca')}
                   />
@@ -329,7 +348,7 @@ export default function TriviasDetalle() {
                 </div>
               </div>
             )}
-            
+
             <div>
               <Text className="font-medium">Color Header:</Text>
               <div className="flex items-center gap-2 mt-2">
@@ -379,8 +398,8 @@ export default function TriviasDetalle() {
               <div className="group relative ml-1">
                 <InformationCircleIcon className="h-5 w-5 text-blue-500" />
                 <div className="absolute right-0 top-full mt-1 hidden w-64 rounded bg-gray-800 p-2 text-xs text-white group-hover:block z-10">
-                  {sucursalesAsociadas.length === 0 
-                    ? "Esta trivia aplica a todas las sucursales." 
+                  {sucursalesAsociadas.length === 0
+                    ? "Esta trivia aplica a todas las sucursales."
                     : "Esta trivia solo aplica a las sucursales mostradas."}
                 </div>
               </div>
@@ -418,6 +437,24 @@ export default function TriviasDetalle() {
 
       <TriviaPreguntas triviaId={id} />
 
+      {/* Sección para descargar respuestas */}
+      <div className="mb-8 border rounded-lg overflow-hidden">w
+        <div className="border-b bg-gray-50 px-4 py-3 flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Respuestas de los participantes</h3>
+          <Button
+            color="blue"
+            icon={ArrowDownTrayIcon}
+            onClick={handleDescargarRespuestas}
+            className="flex items-center gap-2"
+          >
+            Descargar CSV
+          </Button>
+        </div>
+        <div className="p-4 text-gray-600 text-sm">
+          Descarga todas las respuestas de los participantes para esta trivia en formato CSV.
+        </div>
+      </div>
+
       {/* Botones de acción - actualizado para que se parezca a DetalleSucursal */}
       <div className="flex justify-between mt-8 pt-6 border-t">
         <Button
@@ -427,7 +464,7 @@ export default function TriviasDetalle() {
         >
           ← Volver a Trivias
         </Button>
-        
+
         <div className="flex gap-4">
           <Link to={`/trivias/editar/${trivia.idTriviaConfig}`}>
             <Button color="blue" className="flex items-center gap-2">
@@ -437,7 +474,7 @@ export default function TriviasDetalle() {
               </span>
             </Button>
           </Link>
-          
+
           <Button
             color="red"
             type="button"
