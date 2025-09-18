@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, Title, Text, Button } from "@tremor/react";
 import { EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { serverAPIsLocal } from "../config";
+import { API_BASE_URL } from "../config";
+import { getImageUrl } from "../lib/imageUtils";
 
 export default function CuponeraSection() {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function CuponeraSection() {
 
   const fetchCupones = () => {
     setLoading(true);
-    fetch(`${serverAPIsLocal}/api/cuponera?all=true`)
+    fetch(`${API_BASE_URL}/api/cuponera?all=true`)
       .then((res) => res.json())
       .then((data) => {
         setCupones(data);
@@ -30,7 +31,7 @@ export default function CuponeraSection() {
   const handleEliminarCupon = async (id) => {
     if (!window.confirm('¿Seguro que deseas eliminar este cupón?')) return;
     try {
-      const response = await fetch(`${serverAPIsLocal}/api/cuponera/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/cuponera/${id}`, {
         method: 'DELETE',
       });
       if (response.status === 204) {
@@ -92,10 +93,20 @@ export default function CuponeraSection() {
                   <td className="px-4 py-2">{item.NombreCupon}</td>
                   <td className="px-4 py-2">
                     <img 
-                      src={item.ImgPc} 
+                      src={getImageUrl(item.ImgPc)} 
                       alt={item.NombreCupon} 
                       className="h-12 max-w-[100px] object-contain border rounded"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
                     />
+                    <div 
+                      style={{ display: 'none' }} 
+                      className="h-12 max-w-[100px] bg-gray-200 border rounded flex items-center justify-center"
+                    >
+                      <span className="text-gray-500 text-xs">Sin imagen</span>
+                    </div>
                   </td>
                   <td className="px-4 py-2">
                     <span

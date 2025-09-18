@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Title, Text, Button } from "@tremor/react";
-import { serverAPIsLocal } from "../config";
+import { API_BASE_URL } from "../config";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { getImageUrl } from "../lib/imageUtils";
 
 export default function CuponeraDetalle() {
   const { id } = useParams();
@@ -13,7 +14,7 @@ export default function CuponeraDetalle() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${serverAPIsLocal}/api/cuponera/${id}`)
+    fetch(`${API_BASE_URL}/api/cuponera/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo obtener el cupón");
         return res.json();
@@ -52,18 +53,38 @@ export default function CuponeraDetalle() {
           <div>
             <span className="font-semibold">Imagen PC:</span><br />
             <img 
-              src={cupon.ImgPc} 
-              alt={cupon.NombreCupon}  
+              src={getImageUrl(cupon.ImgPc)}
+              alt={cupon.NombreCupon}
               className="h-24 max-w-full object-contain border rounded mt-1"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
             />
+            <div 
+              style={{ display: 'none' }} 
+              className="h-24 w-32 bg-gray-200 border rounded mt-1 flex items-center justify-center"
+            >
+              <span className="text-gray-500 text-xs">Sin imagen PC</span>
+            </div>
           </div>
           <div>
             <span className="font-semibold">Imagen Móvil:</span><br />
             <img 
-              src={cupon.ImgMovil} 
-              alt={cupon.NombreCupon} 
+              src={getImageUrl(cupon.ImgMovil)}
+              alt={cupon.NombreCupon}
               className="h-24 max-w-full object-contain border rounded mt-1"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
             />
+            <div 
+              style={{ display: 'none' }} 
+              className="h-24 w-32 bg-gray-200 border rounded mt-1 flex items-center justify-center"
+            >
+              <span className="text-gray-500 text-xs">Sin imagen Móvil</span>
+            </div>
           </div>
         </div>
       ) : null}

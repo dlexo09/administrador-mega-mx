@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { serverAPIsLocal } from '../config';
+import { API_BASE_URL } from '../config';
+import { getImageUrl } from '../lib/imageUtils';
 
 const CuponeraEditar = () => {
   const { id } = useParams();
@@ -12,14 +13,18 @@ const CuponeraEditar = () => {
     Status: 'Activo',
     FechaInicio: '',
     FechaFin: '',
-    ImgPc: '',
-    ImgMovil: ''
+    ImgPc: '', // S3 key
+    ImgMovil: '' // S3 key
   });
+  const [previewPc, setPreviewPc] = useState(null);
+  const [previewMovil, setPreviewMovil] = useState(null);
+  const [uploadingPc, setUploadingPc] = useState(false);
+  const [uploadingMovil, setUploadingMovil] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${serverAPIsLocal}/api/cuponera/${id}`)
+    fetch(`${API_BASE_URL}/api/cuponera/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('No se pudo obtener el cupón');
         return res.json();
@@ -57,6 +62,60 @@ const CuponeraEditar = () => {
     }
   };
 
+  // Subida de imagen PC
+  const handleFilePc = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingPc(true);
+    setPreviewPc(URL.createObjectURL(file));
+    try {
+      // Solicitar presigned-url
+      const presignedRes = await fetch(`${API_BASE_URL}/api/cuponera/presigned-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, filetype: file.type })
+      });
+      const { url, key } = await presignedRes.json();
+      // Subir a S3
+      await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+      });
+      setFormData(prev => ({ ...prev, ImgPc: key }));
+    } catch (err) {
+      alert('Error subiendo imagen PC');
+    }
+    setUploadingPc(false);
+  };
+
+  // Subida de imagen Móvil
+  const handleFileMovil = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingMovil(true);
+    setPreviewMovil(URL.createObjectURL(file));
+    try {
+      // Solicitar presigned-url
+      const presignedRes = await fetch(`${API_BASE_URL}/api/cuponera/presigned-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, filetype: file.type })
+      });
+      const { url, key } = await presignedRes.json();
+      // Subir a S3
+      await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+      });
+      setFormData(prev => ({ ...prev, ImgMovil: key }));
+    } catch (err) {
+      alert('Error subiendo imagen móvil');
+    }
+    setUploadingMovil(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -68,7 +127,7 @@ const CuponeraEditar = () => {
         Status: statusValue,
         CreateAt: new Date().toISOString()
       };
-      const response = await fetch(`${serverAPIsLocal}/api/cuponera/${id}` , {
+      const response = await fetch(`${API_BASE_URL}/api/cuponera/${id}` , {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -185,54 +244,74 @@ const CuponeraEditar = () => {
               {/* Imagen PC */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  URL Imagen PC *
+                  Imagen PC *
                 </label>
                 <input
-                  type="url"
-                  name="ImgPc"
-                  value={formData.ImgPc}
-                  onChange={handleInputChange}
-                  required
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFilePc}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://ejemplo.com/imagen-pc.jpg"
                 />
+                {uploadingPc && <span className="text-blue-500">Subiendo imagen...</span>}
               </div>
               {/* Imagen Móvil */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  URL Imagen Móvil *
+                  Imagen Móvil *
                 </label>
                 <input
-                  type="url"
-                  name="ImgMovil"
-                  value={formData.ImgMovil}
-                  onChange={handleInputChange}
-                  required
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileMovil}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://ejemplo.com/imagen-movil.jpg"
                 />
+                {uploadingMovil && <span className="text-blue-500">Subiendo imagen...</span>}
               </div>
             </div>
             {/* Preview de imágenes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {formData.ImgPc && (
+              {(previewPc || formData.ImgPc) && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Preview PC:</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    {previewPc ? 'Preview PC (nuevo):' : 'Imagen PC actual:'}
+                  </h3>
                   <img 
-                    src={formData.ImgPc} 
+                    src={previewPc || getImageUrl(formData.ImgPc)} 
                     alt="Preview PC" 
-                    className="w-full h-32 object-cover border rounded-md"
+                    className="w-full h-32 object-cover border rounded-md" 
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
                   />
+                  <div 
+                    style={{ display: 'none' }} 
+                    className="w-full h-32 bg-gray-200 border rounded-md flex items-center justify-center"
+                  >
+                    <span className="text-gray-500 text-sm">Error cargando imagen PC</span>
+                  </div>
                 </div>
               )}
-              {formData.ImgMovil && (
+              {(previewMovil || formData.ImgMovil) && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Preview Móvil:</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    {previewMovil ? 'Preview Móvil (nuevo):' : 'Imagen Móvil actual:'}
+                  </h3>
                   <img 
-                    src={formData.ImgMovil} 
+                    src={previewMovil || getImageUrl(formData.ImgMovil)} 
                     alt="Preview Móvil" 
-                    className="w-full h-32 object-cover border rounded-md"
+                    className="w-full h-32 object-cover border rounded-md" 
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
                   />
+                  <div 
+                    style={{ display: 'none' }} 
+                    className="w-full h-32 bg-gray-200 border rounded-md flex items-center justify-center"
+                  >
+                    <span className="text-gray-500 text-sm">Error cargando imagen Móvil</span>
+                  </div>
                 </div>
               )}
             </div>
