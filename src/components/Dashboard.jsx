@@ -15,13 +15,17 @@ import LegalTerminosForm from "../pages/LegalTerminosForm";
 import TriviasList from "../pages/TriviasList";
 import TriviasForm from "../pages/TriviasForm";
 import TriviasDetalle from "../pages/TriviasDetalle";
+import BannerHomeList from "../pages/BannerHomeList";
+import BannerHomeForm from "../pages/BannerHomeForm";
+import BannerHomeDetail from "../pages/BannerHomeDetail";
+
 
 import CuponeraSection from "../pages/CuponeraSection";
 import CuponeraDetalle from "../pages/CuponeraDetalle";
 import CuponeraNuevo from "../pages/CuponeraNuevo";
 import CuponeraEditar from "../pages/CuponeraEditar";
 
- 
+
 
 // Importamos componentes placeholder para los que aún no existen
 // Esto evita errores 500 por componentes no encontrados
@@ -34,11 +38,6 @@ const PlaceholderComponent = ({ name }) => (
 
 // Componentes placeholder para las rutas
 const SucursalDetalle = () => <PlaceholderComponent name="SucursalDetalle" />;
-const SucursalEditar = () => <PlaceholderComponent name="SucursalEditar" />;
-const BannerHome = () => <PlaceholderComponent name="BannerHome" />;
-const BannerHomeDetalle = () => <PlaceholderComponent name="BannerHomeDetalle" />;
-const BannerHomeEditar = () => <PlaceholderComponent name="BannerHomeEditar" />;
-const BannerHomeNuevo = () => <PlaceholderComponent name="BannerHomeNuevo" />;
 const BannerAvisosNuevo = () => <PlaceholderComponent name="BannerAvisosNuevo" />;
 
 function SidebarMenu({ title, children }) {
@@ -145,19 +144,19 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                 </button>
                 <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
-                  onClick={() => navigate("/bannerAvisos/nuevo")}
+                  onClick={() => navigate("/bannerAvisos")}
                 >
                   Banners Avisos
                 </button>
+                <button
+                  className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
+                  onClick={() => navigate("/cuponera")}
+                >
+                  Cuponera
+                </button>
               </SidebarMenu>
 
-              {/* Cuponera como sección independiente */}
-              <button
-                className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 font-medium"
-                onClick={() => navigate("/cuponera")}
-              >
-                Cuponera
-              </button>
+
             </>
           )}
 
@@ -252,10 +251,10 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/sucursales/nueva" element={<NuevaSucursal />} />
           <Route path="/sucursales/:id" element={<DetalleSucursal />} />
           <Route path="/sucursales/editar/:id" element={<EditarSucursal />} />
-          <Route path="/bannerhome" element={<BannerHome />} />
-          <Route path="/bannerhome/:id" element={<BannerHomeDetalle />} />
-          <Route path="/bannerhome/editar/:id" element={<BannerHomeEditar />} />
-          <Route path="/bannerhome/nuevo" element={<BannerHomeNuevo />} />
+          <Route path="/bannerhome" element={<BannerHomeList />} />
+          <Route path="/bannerhome/nuevo" element={<BannerHomeForm />} />
+          <Route path="/bannerhome/editar/:id" element={<BannerHomeForm />} />
+          <Route path="/bannerhome/:id" element={<BannerHomeDetail />} />
           <Route path="/bannerAvisos/nuevo" element={<BannerAvisosNuevo />} />
           <Route path="/legal/secciones" element={<LegalSecciones />} />
           <Route path="/secciones-legales" element={<LegalSecciones />} />
@@ -271,11 +270,11 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/trivias/:id" element={<TriviasDetalle />} />
 
 
-            {/* Cuponera */}
-            <Route path="/cuponera" element={<CuponeraSection />} />
-            <Route path="/cuponera/nuevo" element={<CuponeraNuevo />} />
-            <Route path="/cuponera/:id" element={<CuponeraDetalle />} />
-            <Route path="/cuponera/editar/:id" element={<CuponeraEditar />} />
+          {/* Cuponera */}
+          <Route path="/cuponera" element={<CuponeraSection />} />
+          <Route path="/cuponera/nuevo" element={<CuponeraNuevo />} />
+          <Route path="/cuponera/:id" element={<CuponeraDetalle />} />
+          <Route path="/cuponera/editar/:id" element={<CuponeraEditar />} />
 
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={
