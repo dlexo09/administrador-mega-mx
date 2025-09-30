@@ -18,6 +18,9 @@ import TriviasDetalle from "../pages/TriviasDetalle";
 import BannerHomeList from "../pages/BannerHomeList";
 import BannerHomeForm from "../pages/BannerHomeForm";
 import BannerHomeDetail from "../pages/BannerHomeDetail";
+import BannerAvisosList from "../pages/BannerAvisosList";
+import BannerAvisosForm from "../pages/BannerAvisosForm";
+import BannerAvisosDetail from "../pages/BannerAvisosDetail";
 
 
 import CuponeraSection from "../pages/CuponeraSection";
@@ -38,7 +41,6 @@ const PlaceholderComponent = ({ name }) => (
 
 // Componentes placeholder para las rutas
 const SucursalDetalle = () => <PlaceholderComponent name="SucursalDetalle" />;
-const BannerAvisosNuevo = () => <PlaceholderComponent name="BannerAvisosNuevo" />;
 
 function SidebarMenu({ title, children }) {
   const [open, setOpen] = useState(false);
@@ -94,7 +96,7 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                 >
                   Sucursales
                 </button>
-                <button
+                {/* <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
                   onClick={() => navigate("/regiones")}
                 >
@@ -105,7 +107,7 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                   onClick={() => navigate("/cis")}
                 >
                   CIS
-                </button>
+                </button> */}
               </SidebarMenu>
 
               <SidebarMenu title="Menú Tarifario">
@@ -255,7 +257,10 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/bannerhome/nuevo" element={<BannerHomeForm />} />
           <Route path="/bannerhome/editar/:id" element={<BannerHomeForm />} />
           <Route path="/bannerhome/:id" element={<BannerHomeDetail />} />
-          <Route path="/bannerAvisos/nuevo" element={<BannerAvisosNuevo />} />
+          <Route path="/bannerAvisos" element={<BannerAvisosList />} />
+          <Route path="/bannerAvisos/nuevo" element={<BannerAvisosForm />} />
+          <Route path="/bannerAvisos/editar/:id" element={<BannerAvisosForm />} />
+          <Route path="/bannerAvisos/:id" element={<BannerAvisosDetail />} />
           <Route path="/legal/secciones" element={<LegalSecciones />} />
           <Route path="/secciones-legales" element={<LegalSecciones />} />
           <Route path="/secciones-legales/nueva" element={<LegalSeccionForm />} />

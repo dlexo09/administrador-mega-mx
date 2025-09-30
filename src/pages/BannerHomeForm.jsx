@@ -26,6 +26,8 @@ export default function BannerHomeForm() {
     const [sucursalesSeleccionadas, setSucursalesSeleccionadas] = useState([]);
     const [filtroSucursales, setFiltroSucursales] = useState("");
     const [seleccionarTodas, setSeleccionarTodas] = useState(false);
+    const [actualizandoSucursales, setActualizandoSucursales] = useState(false);
+    const [progresoSucursales, setProgresoSucursales] = useState({ total: 0, actual: 0, visible: false, mensaje: "" });
     const [mostrarModalImportar, setMostrarModalImportar] = useState(false);
     const [textoImportacion, setTextoImportacion] = useState("");
     const [resultadosImportacion, setResultadosImportacion] = useState(null);
@@ -76,57 +78,93 @@ export default function BannerHomeForm() {
         return key;
     };
 
-    // Guardar permisos sucursal
+    // Guardar permisos sucursal en lotes con barra de progreso
+    const guardarSucursalesBatch = async (idObjeto, sucursales, batchSize = 100) => {
+        setProgresoSucursales({ total: sucursales.length, actual: 0, visible: true, mensaje: "Guardando sucursales..." });
+        for (let i = 0; i < sucursales.length; i += batchSize) {
+            const lote = sucursales.slice(i, i + batchSize);
+            await Promise.allSettled(
+                lote.map(s =>
+                    fetch(`${API_BASE_URL}/api/permisosSucursal`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            objetoName: "BannerHome",
+                            idObjeto: Number(idObjeto),
+                            idSucursal: Number(s.value)
+                        })
+                    })
+                )
+            );
+            setProgresoSucursales(prev => ({
+                ...prev,
+                actual: Math.min(prev.actual + lote.length, prev.total)
+            }));
+        }
+        setProgresoSucursales({ total: 0, actual: 0, visible: false, mensaje: "" });
+    };
+
+    // Eliminar permisos sucursal en lotes con barra de progreso
+    const eliminarSucursalesBatch = async (idObjeto, sucursales, batchSize = 100) => {
+        setProgresoSucursales({ total: sucursales.length, actual: 0, visible: true, mensaje: "Quitando sucursales..." });
+        for (let i = 0; i < sucursales.length; i += batchSize) {
+            const lote = sucursales.slice(i, i + batchSize);
+            await Promise.allSettled(
+                lote.map(s =>
+                    fetch(`${API_BASE_URL}/api/permisosSucursal?objetoName=BannerHome&idObjeto=${idObjeto}&idSucursal=${s.value}`, {
+                        method: "DELETE"
+                    })
+                )
+            );
+            setProgresoSucursales(prev => ({
+                ...prev,
+                actual: Math.min(prev.actual + lote.length, prev.total)
+            }));
+        }
+        setProgresoSucursales({ total: 0, actual: 0, visible: false, mensaje: "" });
+    };
+
+    // Guardar permisos sucursal (usa batch)
     const guardarSucursales = async (idObjeto) => {
         try {
-            // Eliminar permisos anteriores si es edición
             if (id) {
+                // Eliminar permisos anteriores en lotes
                 const permisosRes = await fetch(`${API_BASE_URL}/api/permisosSucursal?objetoName=BannerHome&idObjeto=${idObjeto}`);
                 if (permisosRes.ok) {
                     const permisosActuales = await permisosRes.json();
-                    await Promise.all(permisosActuales.map(p =>
-                        fetch(`${API_BASE_URL}/api/permisosSucursal?objetoName=BannerHome&idObjeto=${idObjeto}&idSucursal=${p.idSucursal}`, {
-                            method: "DELETE",
-                        })
-                    ));
+                    await eliminarSucursalesBatch(idObjeto, permisosActuales.map(p => ({ value: Number(p.idSucursal) })));
                 }
             }
-            // Crear nuevos permisos
+            // Crear nuevos permisos en lotes
             if (sucursalesSeleccionadas.length > 0) {
-                await Promise.allSettled(
-                    sucursalesSeleccionadas.map(s =>
-                        fetch(`${API_BASE_URL}/api/permisosSucursal`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                objetoName: "BannerHome",
-                                idObjeto: Number(idObjeto),
-                                idSucursal: Number(s.value)
-                            })
-                        })
-                    )
-                );
+                await guardarSucursalesBatch(idObjeto, sucursalesSeleccionadas);
             }
         } catch (error) {
             console.error("Error al gestionar permisos de sucursales:", error);
         }
     };
 
-    // Botón seleccionar todas/deseleccionar
+    // Botón seleccionar todas/deseleccionar (optimizado)
     const sucursalesFiltradas = filtroSucursales
         ? sucursalesDisponibles.filter(s => s.label.toLowerCase().includes(filtroSucursales.toLowerCase()))
         : sucursalesDisponibles;
 
     const toggleSeleccionarTodas = () => {
-        if (seleccionarTodas) {
-            const ids = new Set(sucursalesFiltradas.map(s => s.value));
-            setSucursalesSeleccionadas(prev => prev.filter(s => !ids.has(s.value)));
-        } else {
-            const ya = new Set(sucursalesSeleccionadas.map(s => s.value));
-            const nuevas = sucursalesFiltradas.filter(s => !ya.has(s.value));
-            setSucursalesSeleccionadas(prev => [...prev, ...nuevas]);
-        }
-        setSeleccionarTodas(!seleccionarTodas);
+        setActualizandoSucursales(true);
+        setProgresoSucursales({ total: sucursalesFiltradas.length, actual: 0, visible: true, mensaje: seleccionarTodas ? "Quitando sucursales..." : "Seleccionando sucursales..." });
+        setTimeout(() => {
+            if (seleccionarTodas) {
+                // Deseleccionar todas las filtradas
+                const ids = new Set(sucursalesFiltradas.map(s => s.value));
+                setSucursalesSeleccionadas(prev => prev.filter(s => !ids.has(s.value)));
+            } else {
+                // Seleccionar todas las filtradas
+                setSucursalesSeleccionadas(sucursalesFiltradas);
+            }
+            setSeleccionarTodas(!seleccionarTodas);
+            setActualizandoSucursales(false);
+            setProgresoSucursales({ total: 0, actual: 0, visible: false, mensaje: "" });
+        }, 400); // delay para mostrar la barra
     };
 
     // Importar sucursales desde texto
@@ -174,6 +212,7 @@ export default function BannerHomeForm() {
     // Guardar banner
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (actualizandoSucursales || progresoSucursales.visible) return; // Bloquea el submit si está actualizando
         setLoading(true);
 
         let imagenBanner = form.imagenBanner;
@@ -211,14 +250,28 @@ export default function BannerHomeForm() {
         setLoading(false);
     };
 
-    useEffect(() => {
-        console.log("Modal importar:", mostrarModalImportar);
-    }, [mostrarModalImportar]);
+    // Barra de progreso visual
+    const ProgresoBarra = ({ progreso }) => {
+        if (!progreso.visible || progreso.total === 0) return null;
+        const porcentaje = Math.round((progreso.actual / progreso.total) * 100);
+        return (
+            <div className="w-full my-4">
+                <div className="mb-1 text-sm text-blue-700 font-medium">{progreso.mensaje} ({progreso.actual}/{progreso.total})</div>
+                <div className="w-full bg-gray-200 rounded-full h-4">
+                    <div
+                        className="bg-blue-600 h-4 rounded-full transition-all"
+                        style={{ width: `${porcentaje}%` }}
+                    ></div>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <Card className="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto">
             <Title>{id ? "Editar Banner Home" : "Nuevo Banner Home"}</Title>
             <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
+                <ProgresoBarra progreso={progresoSucursales} />
                 <div>
                     <Text>Título</Text>
                     <TextInput
@@ -265,7 +318,6 @@ export default function BannerHomeForm() {
                         </div>
                     )}
                 </div>
-
                 <div>
                     <Text>Imagen Banner (Mobile)</Text>
                     <input
@@ -349,7 +401,7 @@ export default function BannerHomeForm() {
                         <div className="flex flex-col md:flex-row md:items-center gap-2">
                             <TextInput placeholder="Buscar sucursales..." value={filtroSucursales} onChange={(e) => setFiltroSucursales(e.target.value)} className="max-w-md" />
                             <Button
-                                type="button" // ← agrega esto
+                                type="button"
                                 color="blue"
                                 variant="secondary"
                                 onClick={() => setMostrarModalImportar(true)}
@@ -367,9 +419,13 @@ export default function BannerHomeForm() {
                                 type="button"
                                 onClick={toggleSeleccionarTodas}
                                 className="text-sm text-blue-600 hover:text-blue-800"
+                                disabled={actualizandoSucursales || progresoSucursales.visible}
                             >
                                 {seleccionarTodas ? 'Deseleccionar todas' : 'Seleccionar todas las filtradas'}
                             </button>
+                            {(actualizandoSucursales || progresoSucursales.visible) && (
+                                <span className="ml-2 text-blue-600 animate-pulse">Procesando...</span>
+                            )}
                         </div>
                     </div>
                     <div className="max-h-[300px] overflow-y-auto border rounded-lg">
@@ -410,7 +466,8 @@ export default function BannerHomeForm() {
                         <Button
                             type="submit"
                             color="blue"
-                            loading={loading}
+                            loading={loading || actualizandoSucursales || progresoSucursales.visible}
+                            disabled={actualizandoSucursales || progresoSucursales.visible}
                             className="flex items-center gap-2"
                         >
                             <span className="flex items-center gap-2">
