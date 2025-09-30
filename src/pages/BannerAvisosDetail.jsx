@@ -9,6 +9,9 @@ export default function BannerAvisosDetail() {
     const navigate = useNavigate();
     const [banner, setBanner] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [sucursalesDisponibles, setSucursalesDisponibles] = useState([]);
+    const [sucursalesAsociadas, setSucursalesAsociadas] = useState([]);
+    const [loadingSucursales, setLoadingSucursales] = useState(true);
 
     useEffect(() => {
         setLoading(true);
@@ -19,6 +22,32 @@ export default function BannerAvisosDetail() {
                 setLoading(false);
             });
     }, [id]);
+
+    // Cargar sucursales disponibles
+    useEffect(() => {
+        fetch(`${API_BASE_URL}/api/sucursales`)
+            .then(res => res.json())
+            .then(data => setSucursalesDisponibles(data))
+            .catch(() => setSucursalesDisponibles([]));
+    }, []);
+
+    // Cargar sucursales asociadas al banner
+    useEffect(() => {
+        if (!id || sucursalesDisponibles.length === 0) return;
+        setLoadingSucursales(true);
+        fetch(`${API_BASE_URL}/api/permisosSucursal?objetoName=BannerAvisosHome&idObjeto=${id}`)
+            .then(res => res.json())
+            .then(permisos => {
+                const ids = permisos.map(p => Number(p.idSucursal));
+                const asociadas = sucursalesDisponibles.filter(s => ids.includes(s.idSucursal));
+                setSucursalesAsociadas(asociadas);
+                setLoadingSucursales(false);
+            })
+            .catch(() => {
+                setSucursalesAsociadas([]);
+                setLoadingSucursales(false);
+            });
+    }, [id, sucursalesDisponibles]);
 
     // Eliminar banner
     const handleDelete = async () => {
@@ -67,7 +96,7 @@ export default function BannerAvisosDetail() {
                     <Text className="font-bold">Imagen Banner (PC):</Text>
                     <div>
                         <img
-                            src={`${S3_BASE_URL}/uploads/bannersfooter/${banner.archivo}`}
+                            src={`${S3_BASE_URL}/${banner.archivo}`}
                             alt="Banner PC"
                             className="mt-2 h-20 rounded"
                             onError={e => {
@@ -78,7 +107,7 @@ export default function BannerAvisosDetail() {
                         />
                         <a
                             id="img-fallback-link-detail"
-                            href={`${S3_BASE_URL}/uploads/bannersfooter/${banner.archivo}`}
+                            href={`${S3_BASE_URL}/${banner.archivo}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{ display: "none", color: "#2563eb", textDecoration: "underline", marginTop: "8px" }}
@@ -91,7 +120,7 @@ export default function BannerAvisosDetail() {
                     <Text className="font-bold">Imagen Banner (Mobile):</Text>
                     <div>
                         <img
-                            src={`${S3_BASE_URL}/uploads/bannersfooter/${banner.archivoMovil}`}
+                            src={`${S3_BASE_URL}/${banner.archivoMovil}`}
                             alt="Banner Mobile"
                             className="mt-2 h-20 rounded"
                             onError={e => {
@@ -102,7 +131,7 @@ export default function BannerAvisosDetail() {
                         />
                         <a
                             id="img-mobile-fallback-link-detail"
-                            href={`${S3_BASE_URL}/uploads/bannersfooter/${banner.archivoMovil}`}
+                            href={`${S3_BASE_URL}/${banner.archivoMovil}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{ display: "none", color: "#2563eb", textDecoration: "underline", marginTop: "8px" }}
@@ -127,6 +156,46 @@ export default function BannerAvisosDetail() {
                 <div>
                     <Text className="font-bold">Fin:</Text>
                     <Text>{banner.fhFin ? banner.fhFin.substring(0, 16) : "Sin fecha"}</Text>
+                </div>
+                
+                {/* Sucursales asociadas */}
+                <div>
+                    <Text className="font-bold">Sucursales donde aplica:</Text>
+                    {loadingSucursales ? (
+                        <div className="flex items-center mt-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700 mr-2"></div>
+                            <Text className="text-gray-500">Cargando sucursales...</Text>
+                        </div>
+                    ) : sucursalesAsociadas.length === 0 ? (
+                        <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <Text className="text-yellow-800 font-medium">
+                                📍 Este banner no es visible en ninguna sucursal
+                            </Text>
+                            <Text className="text-yellow-600 text-sm mt-1">
+                                No esta asignado a ninguna sucursal
+                            </Text>
+                        </div>
+                    ) : (
+                        <div className="mt-2">
+                            <div className="mb-2">
+                                <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-medium">
+                                    {sucursalesAsociadas.length} sucursal{sucursalesAsociadas.length !== 1 ? 'es' : ''} seleccionada{sucursalesAsociadas.length !== 1 ? 's' : ''}
+                                </span>
+                            </div>
+                            <div className="max-h-40 overflow-y-auto border rounded-lg bg-gray-50">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-x divide-y">
+                                    {sucursalesAsociadas.map(sucursal => (
+                                        <div key={sucursal.idSucursal} className="p-2 hover:bg-blue-50">
+                                            <div className="text-sm">
+                                                <span className="text-gray-500 font-mono mr-1">{sucursal.idSucursal}:</span>
+                                                <span>{sucursal.sucursalName}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
             {/* Botones de acción */}
