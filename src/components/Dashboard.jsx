@@ -21,6 +21,9 @@ import BannerHomeDetail from "../pages/BannerHomeDetail";
 import BannerAvisosList from "../pages/BannerAvisosList";
 import BannerAvisosForm from "../pages/BannerAvisosForm";
 import BannerAvisosDetail from "../pages/BannerAvisosDetail";
+import CardsStreamingList from "../pages/CardsStreamingList";
+import CardsStreamingForm from "../pages/CardsStreamingForm";
+import CardsStreamingDetail from "../pages/CardsStreamingDetail";
 
 
 import CuponeraSection from "../pages/CuponeraSection";
@@ -152,6 +155,12 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                 </button>
                 <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
+                  onClick={() => navigate("/cards-streaming")}
+                >
+                  Banners card streaming
+                </button>
+                <button
+                  className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
                   onClick={() => navigate("/cuponera")}
                 >
                   Cuponera
@@ -273,6 +282,10 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/trivias/nueva" element={<TriviasForm />} />
           <Route path="/trivias/editar/:id" element={<TriviasForm />} />
           <Route path="/trivias/:id" element={<TriviasDetalle />} />
+          <Route path="/cards-streaming" element={<CardsStreamingList />} />
+          <Route path="/cards-streaming/nuevo" element={<CardsStreamingForm />} />
+          <Route path="/cards-streaming/editar/:id" element={<CardsStreamingForm />} />
+          <Route path="/cards-streaming/:id" element={<CardsStreamingDetail />} />
 
 
           {/* Cuponera */}
