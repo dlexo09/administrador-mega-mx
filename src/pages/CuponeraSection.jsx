@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, Title, Text, Button } from "@tremor/react";
-import { EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { EyeIcon, PencilSquareIcon, PowerIcon } from "@heroicons/react/24/outline";
 import { API_BASE_URL } from "../config";
 import { getImageUrl } from "../lib/imageUtils";
 
@@ -9,6 +9,7 @@ export default function CuponeraSection() {
   const navigate = useNavigate();
   const [cupones, setCupones] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusLoadingId, setStatusLoadingId] = useState(null);
 
   const fetchCupones = () => {
     setLoading(true);
@@ -28,23 +29,30 @@ export default function CuponeraSection() {
     fetchCupones();
   }, []);
 
-  const handleEliminarCupon = async (id) => {
-    if (!window.confirm('¿Seguro que deseas eliminar este cupón?')) return;
+  const handleToggleStatus = async (cupon) => {
+    const nuevoStatus = cupon.Status === 1 ? 0 : 1;
     try {
-      const response = await fetch(`${API_BASE_URL}/api/cuponera/${id}`, {
-        method: 'DELETE',
+      setStatusLoadingId(cupon.IDCuponera);
+      const response = await fetch(`${API_BASE_URL}/api/cuponera/${cupon.IDCuponera}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...cupon, Status: nuevoStatus })
       });
-      if (response.status === 204) {
-        alert('Cupón eliminado exitosamente');
-        fetchCupones(); // Recargar la lista
-      } else if (response.status === 404) {
-        alert('Cupón no encontrado');
+      
+      if (response.ok) {
+        // Actualizar solo el cupón específico en el estado local
+        setCupones(cupones.map(c =>
+          c.IDCuponera === cupon.IDCuponera ? { ...c, Status: nuevoStatus } : c
+        ));
+        alert(`Cupón ${nuevoStatus === 1 ? "activado" : "desactivado"} correctamente`);
       } else {
-        alert('Error al eliminar el cupón');
+        alert('Error al cambiar el estatus');
       }
     } catch (err) {
-      console.error('Error eliminando cupón:', err);
-      alert('Error al eliminar el cupón');
+      console.error('Error cambiando estatus:', err);
+      alert('Error al cambiar el estatus');
+    } finally {
+      setStatusLoadingId(null);
     }
   };
 
@@ -136,12 +144,18 @@ export default function CuponeraSection() {
                       Editar
                     </button>
                     <button
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
-                      title="Eliminar"
-                      onClick={() => handleEliminarCupon(item.IDCuponera)}
+                      type="button"
+                      className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition border-none focus:outline-none ${item.Status === 1 ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                      title={item.Status === 1 ? 'Desactivar' : 'Activar'}
+                      onClick={() => handleToggleStatus(item)}
+                      disabled={statusLoadingId === item.IDCuponera}
                     >
-                      <TrashIcon className="w-4 h-4" />
-                      Eliminar
+                      {statusLoadingId === item.IDCuponera ? (
+                        <span className="animate-spin h-4 w-4 mr-1 border-b-2 border-blue-700 rounded-full"></span>
+                      ) : (
+                        <PowerIcon className="w-4 h-4" />
+                      )}
+                      {item.Status === 1 ? 'Desactivar' : 'Activar'}
                     </button>
                   </td>
                 </tr>
