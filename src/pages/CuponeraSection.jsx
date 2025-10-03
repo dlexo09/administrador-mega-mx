@@ -75,6 +75,7 @@ export default function CuponeraSection() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-2 text-left">ID</th>
+              <th className="px-4 py-2 text-left">Orden</th>
               <th className="px-4 py-2 text-left">Nombre</th>
               <th className="px-4 py-2 text-left">Imagen</th>
               <th className="px-4 py-2 text-left">Estatus</th>
@@ -95,10 +96,14 @@ export default function CuponeraSection() {
                 </td>
               </tr>
             ) : (
-              cupones.map((item) => (
-                <tr key={item.IDCuponera} className="border-b hover:bg-blue-50 transition-colors">
-                  <td className="px-4 py-2">{item.IDCuponera}</td>
-                  <td className="px-4 py-2">{item.NombreCupon}</td>
+              cupones
+                .slice()
+                .sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999))
+                .map((item) => (
+                  <tr key={item.IDCuponera} className="border-b hover:bg-blue-50 transition-colors">
+                    <td className="px-4 py-2">{item.IDCuponera}</td>
+                    <td className="px-4 py-2">{item.orden}</td>
+                    <td className="px-4 py-2">{item.NombreCupon}</td>
                   <td className="px-4 py-2">
                     <img 
                       src={getImageUrl(item.ImgPc)} 
