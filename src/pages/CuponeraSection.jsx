@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Card, Title, Text, Button } from "@tremor/react";
+import { Card, Title, Text, TextInput, Button } from "@tremor/react";
 import { EyeIcon, PencilSquareIcon, PowerIcon } from "@heroicons/react/24/outline";
 import { API_BASE_URL } from "../config";
 import { getImageUrl } from "../lib/imageUtils";
@@ -9,7 +9,13 @@ export default function CuponeraSection() {
   const navigate = useNavigate();
   const [cupones, setCupones] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [statusLoadingId, setStatusLoadingId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState("IDCuponera");
+  const [sortDir, setSortDir] = useState("asc");
+
+  const PAGE_SIZE = 10;
 
   const fetchCupones = () => {
     setLoading(true);
@@ -60,6 +66,34 @@ export default function CuponeraSection() {
     navigate('/cuponera/nuevo');
   };
 
+  // Filtro por nombre de cupón
+  const filtered = cupones.filter((item) =>
+    (item.NombreCupon || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Ordenamiento
+  const sorted = [...filtered].sort((a, b) => {
+    let aValue = a[sortBy];
+    let bValue = b[sortBy];
+    if (typeof aValue === "string") aValue = aValue.toLowerCase();
+    if (typeof bValue === "string") bValue = bValue.toLowerCase();
+    if (aValue < bValue) return sortDir === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDir === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const handleSort = (col) => {
+    if (sortBy === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(col);
+      setSortDir("asc");
+    }
+  };
+
+  // Paginación
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <Card className="bg-white shadow-lg rounded-xl p-6">
@@ -70,16 +104,41 @@ export default function CuponeraSection() {
         </div>
         <Button color="blue" className="shadow" onClick={handleNuevoCupon}>+ Nuevo Cupón</Button>
       </div>
+      <div className="mb-4">
+        <TextInput
+          placeholder="Buscar por nombre..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-md"
+        />
+      </div>
       <div className="overflow-x-auto mt-2 rounded-lg shadow">
         <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-2 text-left">ID</th>
-              <th className="px-4 py-2 text-left">Orden</th>
-              <th className="px-4 py-2 text-left">Nombre</th>
+              <th
+                className="px-4 py-2 text-left cursor-pointer select-none"
+                onClick={() => handleSort("IDCuponera")}
+              >
+                ID {sortBy === "IDCuponera" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
+              </th>
+              <th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => handleSort("orden")}>
+                Orden {sortBy === "orden" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
+              </th>
+              <th
+                className="px-4 py-2 text-left cursor-pointer select-none"
+                onClick={() => handleSort("NombreCupon")}
+              >
+                Nombre {sortBy === "NombreCupon" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
+              </th>
               <th className="px-4 py-2 text-left">Imagen</th>
-              <th className="px-4 py-2 text-left">Estatus</th>
-              <th className="px-2 py-2 text-left">Acciones</th>
+              <th
+                className="px-4 py-2 text-left cursor-pointer select-none"
+                onClick={() => handleSort("Status")}
+              >
+                Estatus {sortBy === "Status" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
+              </th>
+              <th className="px-4 py-2 text-left">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -89,16 +148,14 @@ export default function CuponeraSection() {
                   <Text>Cargando...</Text>
                 </td>
               </tr>
-            ) : cupones.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center py-4">
                   <Text>No hay cupones.</Text>
                 </td>
               </tr>
             ) : (
-              cupones
-                .slice()
-                .sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999))
+              paginated
                 .map((item) => (
                   <tr key={item.IDCuponera} className="border-b hover:bg-blue-50 transition-colors">
                     <td className="px-4 py-2">{item.IDCuponera}</td>
@@ -168,7 +225,27 @@ export default function CuponeraSection() {
             )}
           </tbody>
         </table>
-  </div>
+      </div>
+      {/* Paginación */}
+      <div className="flex justify-between items-center mt-4">
+        <button
+          className="px-3 py-1 rounded bg-gray-100 hover:bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={page === 1}
+        >
+          Anterior
+        </button>
+        <Text>
+          Página <span className="font-bold">{page}</span> de <span className="font-bold">{totalPages || 1}</span>
+        </Text>
+        <button
+          className="px-3 py-1 rounded bg-gray-100 hover:bg-blue-100 text-blue-700 font-semibold disabled:opacity-50"
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          disabled={page === totalPages || totalPages === 0}
+        >
+          Siguiente
+        </button>
+      </div>
     </Card>
   );
 }
