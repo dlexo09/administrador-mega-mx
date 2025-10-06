@@ -498,7 +498,39 @@ const CuponeraNuevo = () => {
             </div>
 
             {/* Status Switch */}
-            <div>
+
+            {/* Fechas en la misma fila */}
+            <div className="flex flex-col md:flex-row md:space-x-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fecha de Inicio *
+                </label>
+                <input
+                  type="datetime-local"
+                  name="FechaInicio"
+                  value={formData.FechaInicio}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex-1 mt-4 md:mt-0">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fecha de Fin *
+                </label>
+                <input
+                  type="datetime-local"
+                  name="FechaFin"
+                  value={formData.FechaFin}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Status Switch debajo de fechas */}
+            <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Status *
               </label>
@@ -517,36 +549,6 @@ const CuponeraNuevo = () => {
                 </label>
                 <span className={`text-sm font-semibold ${formData.Status === 'Inactivo' ? 'text-red-600' : 'text-gray-400'}`}>Inactivo</span>
               </div>
-            </div>
-
-            {/* Fecha de Inicio */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fecha de Inicio *
-              </label>
-              <input
-                type="datetime-local"
-                name="FechaInicio"
-                value={formData.FechaInicio}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Fecha de Fin */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fecha de Fin *
-              </label>
-              <input
-                type="datetime-local"
-                name="FechaFin"
-                value={formData.FechaFin}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
             </div>
 
             {/* Imagen PC */}
@@ -583,7 +585,7 @@ const CuponeraNuevo = () => {
             {previewPc && (
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Preview PC (local):</h3>
-                <img src={previewPc} alt="Preview PC" className="w-full h-32 object-cover border rounded-md" />
+                <img src={previewPc} alt="Preview PC" className="h-72 max-w-full object-contain border rounded mt-2" />
               </div>
             )}
             {formData.ImgPc && !previewPc && (
@@ -592,7 +594,7 @@ const CuponeraNuevo = () => {
                 <img 
                   src={getImageUrl(formData.ImgPc)} 
                   alt="Preview PC S3" 
-                  className="w-full h-32 object-cover border rounded-md" 
+                  className="h-72 max-w-full object-contain border rounded mt-2" 
                   onError={(e) => {
                     e.target.style.display = 'none';
                     e.target.nextSibling.style.display = 'flex';
@@ -609,7 +611,7 @@ const CuponeraNuevo = () => {
             {previewMovil && (
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Preview Móvil (local):</h3>
-                <img src={previewMovil} alt="Preview Móvil" className="w-full h-32 object-cover border rounded-md" />
+                <img src={previewMovil} alt="Preview Móvil" className="h-72 max-w-full object-contain border rounded mt-2" />
               </div>
             )}
             {formData.ImgMovil && !previewMovil && (
@@ -618,7 +620,7 @@ const CuponeraNuevo = () => {
                 <img 
                   src={getImageUrl(formData.ImgMovil)} 
                   alt="Preview Móvil S3" 
-                  className="w-full h-32 object-cover border rounded-md" 
+                  className="h-72 max-w-full object-contain border rounded mt-2" 
                   onError={(e) => {
                     e.target.style.display = 'none';
                     e.target.nextSibling.style.display = 'flex';

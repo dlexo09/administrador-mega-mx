@@ -104,45 +104,71 @@ export default function CuponeraDetalle() {
             <div><span className="font-semibold">ID:</span> {cupon.IDCuponera}</div>
             <div><span className="font-semibold">Nombre:</span> {cupon.NombreCupon}</div>
             <div><span className="font-semibold">Estatus:</span> {cupon.Status === 1 ? <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold border border-green-300">ACTIVO</span> : <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold border border-red-300">INACTIVO</span>}</div>
+            <div><span className="font-semibold">Fecha de Inicio:</span> {cupon.FechaInicio ? new Date(cupon.FechaInicio).toLocaleString() : '-'}</div>
+            <div><span className="font-semibold">Fecha de Fin:</span> {cupon.FechaFin ? new Date(cupon.FechaFin).toLocaleString() : '-'}</div>
             <div><span className="font-semibold">Enlace:</span> <span className="break-all">{cupon.LinkBoton}</span></div>
              <div className="mb-4">
                <span className="font-semibold">Orden:</span> {cupon.orden}
              </div>
             <div>
               <span className="font-semibold">Imagen PC:</span><br />
-              <img 
-                src={getImageUrl(cupon.ImgPc)}
-                alt={cupon.NombreCupon}
-                className="h-24 max-w-full object-contain border rounded mt-1"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-              <div 
-                style={{ display: 'none' }} 
-                className="h-24 w-32 bg-gray-200 border rounded mt-1 flex items-center justify-center"
-              >
-                <span className="text-gray-500 text-xs">Sin imagen PC</span>
-              </div>
+              {cupon.ImgPc ? (
+                <img
+                  src={getImageUrl(cupon.ImgPc)}
+                  alt={cupon.NombreCupon}
+                  className="h-24 max-w-full object-contain border rounded mt-1"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+              ) : null}
+              {cupon.ImgPc && (
+                <a
+                  href={getImageUrl(cupon.ImgPc)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-blue-600 underline mt-2"
+                  style={{ display: 'none' }}
+                >
+                  Ver imagen PC en una pestaña nueva
+                </a>
+              )}
+              {!cupon.ImgPc && (
+                <div className="h-24 w-32 bg-gray-200 border rounded mt-1 flex items-center justify-center">
+                  <span className="text-gray-500 text-xs">Sin imagen PC</span>
+                </div>
+              )}
             </div>
             <div>
               <span className="font-semibold">Imagen Móvil:</span><br />
-              <img 
-                src={getImageUrl(cupon.ImgMovil)}
-                alt={cupon.NombreCupon}
-                className="h-24 max-w-full object-contain border rounded mt-1"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-              <div 
-                style={{ display: 'none' }} 
-                className="h-24 w-32 bg-gray-200 border rounded mt-1 flex items-center justify-center"
-              >
-                <span className="text-gray-500 text-xs">Sin imagen Móvil</span>
-              </div>
+              {cupon.ImgMovil ? (
+                <img
+                  src={getImageUrl(cupon.ImgMovil)}
+                  alt={cupon.NombreCupon}
+                  className="h-24 max-w-full object-contain border rounded mt-1"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+              ) : null}
+              {cupon.ImgMovil && (
+                <a
+                  href={getImageUrl(cupon.ImgMovil)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-blue-600 underline mt-2"
+                  style={{ display: 'none' }}
+                >
+                  Ver imagen mobile en una pestaña nueva
+                </a>
+              )}
+              {!cupon.ImgMovil && (
+                <div className="h-24 w-32 bg-gray-200 border rounded mt-1 flex items-center justify-center">
+                  <span className="text-gray-500 text-xs">Sin imagen Móvil</span>
+                </div>
+              )}
             </div>
           </div>
           {/* Sucursales donde aplica */}

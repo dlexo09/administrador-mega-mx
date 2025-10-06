@@ -75,8 +75,16 @@ export default function CuponeraSection() {
   const sorted = [...filtered].sort((a, b) => {
     let aValue = a[sortBy];
     let bValue = b[sortBy];
-    if (typeof aValue === "string") aValue = aValue.toLowerCase();
-    if (typeof bValue === "string") bValue = bValue.toLowerCase();
+    if (sortBy === "orden") {
+      aValue = aValue === undefined || aValue === null ? 9999 : Number(aValue);
+      bValue = bValue === undefined || bValue === null ? 9999 : Number(bValue);
+    } else if (sortBy === "FechaInicio" || sortBy === "FechaFin") {
+      aValue = aValue ? new Date(aValue).getTime() : 0;
+      bValue = bValue ? new Date(bValue).getTime() : 0;
+    } else {
+      if (typeof aValue === "string") aValue = aValue.toLowerCase();
+      if (typeof bValue === "string") bValue = bValue.toLowerCase();
+    }
     if (aValue < bValue) return sortDir === "asc" ? -1 : 1;
     if (aValue > bValue) return sortDir === "asc" ? 1 : -1;
     return 0;
@@ -116,28 +124,12 @@ export default function CuponeraSection() {
         <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg">
           <thead className="bg-gray-50">
             <tr>
-              <th
-                className="px-4 py-2 text-left cursor-pointer select-none"
-                onClick={() => handleSort("IDCuponera")}
-              >
-                ID {sortBy === "IDCuponera" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
-              </th>
-              <th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => handleSort("orden")}>
-                Orden {sortBy === "orden" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
-              </th>
-              <th
-                className="px-4 py-2 text-left cursor-pointer select-none"
-                onClick={() => handleSort("NombreCupon")}
-              >
-                Nombre {sortBy === "NombreCupon" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
-              </th>
-              <th className="px-4 py-2 text-left">Imagen</th>
-              <th
-                className="px-4 py-2 text-left cursor-pointer select-none"
-                onClick={() => handleSort("Status")}
-              >
-                Estatus {sortBy === "Status" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
-              </th>
+              <th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => handleSort("IDCuponera")}>ID {sortBy === "IDCuponera" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}</th>
+              <th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => handleSort("orden")}>Orden {sortBy === "orden" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}</th>
+              <th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => handleSort("NombreCupon")}>Nombre {sortBy === "NombreCupon" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}</th>
+              <th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => handleSort("FechaInicio")}>Inicio {sortBy === "FechaInicio" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}</th>
+              <th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => handleSort("FechaFin")}>Fin {sortBy === "FechaFin" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}</th>
+              <th className="px-4 py-2 text-left cursor-pointer select-none" onClick={() => handleSort("Status")}>Estatus {sortBy === "Status" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}</th>
               <th className="px-4 py-2 text-left">Acciones</th>
             </tr>
           </thead>
@@ -148,80 +140,61 @@ export default function CuponeraSection() {
                   <Text>Cargando...</Text>
                 </td>
               </tr>
-            ) : filtered.length === 0 ? (
+            ) : sorted.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center py-4">
                   <Text>No hay cupones.</Text>
                 </td>
               </tr>
             ) : (
-              paginated
+              sorted
+                .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
                 .map((item) => (
                   <tr key={item.IDCuponera} className="border-b hover:bg-blue-50 transition-colors">
                     <td className="px-4 py-2">{item.IDCuponera}</td>
                     <td className="px-4 py-2">{item.orden}</td>
                     <td className="px-4 py-2">{item.NombreCupon}</td>
-                  <td className="px-4 py-2">
-                    <img 
-                      src={getImageUrl(item.ImgPc)} 
-                      alt={item.NombreCupon} 
-                      className="h-12 max-w-[100px] object-contain border rounded"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                    <div 
-                      style={{ display: 'none' }} 
-                      className="h-12 max-w-[100px] bg-gray-200 border rounded flex items-center justify-center"
-                    >
-                      <span className="text-gray-500 text-xs">Sin imagen</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-bold border ${item.Status === 1
-                        ? "bg-green-100 text-green-700 border-green-300"
-                        : "bg-red-100 text-red-700 border-red-300"
-                      }`}
-                    >
-                      {item.Status === 1 ? "ACTIVO" : "INACTIVO"}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2 space-x-2 text-left">
-                    <Link
-                      to={`/cuponera/${item.IDCuponera}`}
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 rounded hover:bg-blue-100 transition"
-                      title="Ver"
-                    >
-                      <EyeIcon className="w-4 h-4" />
-                      Ver
-                    </Link>
-                    <button
-                      onClick={() => navigate(`/cuponera/editar/${item.IDCuponera}`)}
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition"
-                      title="Editar"
-                    >
-                      <PencilSquareIcon className="w-4 h-4" />
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition border-none focus:outline-none ${item.Status === 1 ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
-                      title={item.Status === 1 ? 'Desactivar' : 'Activar'}
-                      onClick={() => handleToggleStatus(item)}
-                      disabled={statusLoadingId === item.IDCuponera}
-                    >
-                      {statusLoadingId === item.IDCuponera ? (
-                        <span className="animate-spin h-4 w-4 mr-1 border-b-2 border-blue-700 rounded-full"></span>
-                      ) : (
-                        <PowerIcon className="w-4 h-4" />
-                      )}
-                      {item.Status === 1 ? 'Desactivar' : 'Activar'}
-                    </button>
-                  </td>
-                </tr>
-              ))
+                    <td className="px-4 py-2">{item.FechaInicio ? new Date(item.FechaInicio).toLocaleString() : '-'}</td>
+                    <td className="px-4 py-2">{item.FechaFin ? new Date(item.FechaFin).toLocaleString() : '-'}</td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-bold border ${item.Status === 1 ? "bg-green-100 text-green-700 border-green-300" : "bg-red-100 text-red-700 border-red-300"}`}>
+                        {item.Status === 1 ? "ACTIVO" : "INACTIVO"}
+                      </span>
+                    </td>
+                    <td className="px-2 py-2 space-x-2 text-left">
+                      <Link
+                        to={`/cuponera/${item.IDCuponera}`}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 rounded hover:bg-blue-100 transition"
+                        title="Ver"
+                      >
+                        <EyeIcon className="w-4 h-4" />
+                        Ver
+                      </Link>
+                      <button
+                        onClick={() => navigate(`/cuponera/editar/${item.IDCuponera}`)}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition"
+                        title="Editar"
+                      >
+                        <PencilSquareIcon className="w-4 h-4" />
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition border-none focus:outline-none ${item.Status === 1 ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                        title={item.Status === 1 ? 'Desactivar' : 'Activar'}
+                        onClick={() => handleToggleStatus(item)}
+                        disabled={statusLoadingId === item.IDCuponera}
+                      >
+                        {statusLoadingId === item.IDCuponera ? (
+                          <span className="animate-spin h-4 w-4 mr-1 border-b-2 border-blue-700 rounded-full"></span>
+                        ) : (
+                          <PowerIcon className="w-4 h-4" />
+                        )}
+                        {item.Status === 1 ? 'Desactivar' : 'Activar'}
+                      </button>
+                    </td>
+                  </tr>
+                ))
             )}
           </tbody>
         </table>
