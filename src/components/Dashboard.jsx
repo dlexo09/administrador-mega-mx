@@ -21,14 +21,13 @@ import BannerHomeDetail from "../pages/BannerHomeDetail";
 import BannerAvisosList from "../pages/BannerAvisosList";
 import BannerAvisosForm from "../pages/BannerAvisosForm";
 import BannerAvisosDetail from "../pages/BannerAvisosDetail";
-
-
 import CuponeraSection from "../pages/CuponeraSection";
 import CuponeraDetalle from "../pages/CuponeraDetalle";
 import CuponeraNuevo from "../pages/CuponeraNuevo";
 import CuponeraEditar from "../pages/CuponeraEditar";
-
-
+import DestacadosStreamings from "../pages/DestacadosStrSection";
+import DestacadosStrEditar from "../pages/DestacadosStrEditar";
+import DestacadosStrDetail from "../pages/DestacadosStrDetail";
 
 // Importamos componentes placeholder para los que aún no existen
 // Esto evita errores 500 por componentes no encontrados
@@ -156,6 +155,12 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                 >
                   Cuponera
                 </button>
+                <button
+                  className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
+                  onClick={() => navigate("/destacados-streamings")}
+                >
+                  Destacados Streamings
+                </button>
               </SidebarMenu>
 
 
@@ -280,6 +285,11 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/cuponera/nuevo" element={<CuponeraNuevo />} />
           <Route path="/cuponera/:id" element={<CuponeraDetalle />} />
           <Route path="/cuponera/editar/:id" element={<CuponeraEditar />} />
+
+          {/* Destacados Streamings */}
+          <Route path="/destacados-streamings" element={<DestacadosStreamings />} />
+          <Route path="/destacados-streamings/editar/:id" element={<DestacadosStrEditar />} />
+          <Route path="/destacados-streamings/:id" element={<DestacadosStrDetail />} />
 
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={
