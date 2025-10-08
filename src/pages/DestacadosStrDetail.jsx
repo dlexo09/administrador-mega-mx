@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Title, Text, Button } from "@tremor/react";
-import { serverAPIsLocal } from "../config";
-import { ArrowLeftIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import { API_BASE_URL } from "../config";
+import { getImageUrl } from "../lib/imageUtils";
+import { ArrowLeftIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export default function DestacadosStrDetail() {
   const { id } = useParams();
@@ -13,7 +14,7 @@ export default function DestacadosStrDetail() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${serverAPIsLocal}/api/destacadosStreaming/${id}`)
+  fetch(`${API_BASE_URL}/api/destacadosStreaming/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo obtener el banner");
         return res.json();
@@ -54,7 +55,7 @@ export default function DestacadosStrDetail() {
           <div>
             <span className="font-semibold">Imagen PC:</span><br />
                 {banner.imagenPC ? (
-                  <ImageWithFallback src={banner.imagenPC} alt={banner.tituloImg} tipo="PC" />
+                  <ImageWithFallback src={getImageUrl(banner.imagenPC)} alt={banner.tituloImg} tipo="PC" />
                 ) : (
                   <div className="h-24 w-32 bg-gray-200 border rounded mt-1 flex items-center justify-center">
                     <span className="text-gray-500 text-xs">Sin imagen PC</span>
@@ -64,7 +65,7 @@ export default function DestacadosStrDetail() {
           <div>
             <span className="font-semibold">Imagen Móvil:</span><br />
                 {banner.imagenMobile ? (
-                  <ImageWithFallback src={banner.imagenMobile} alt={banner.tituloImg} tipo="Móvil" />
+                  <ImageWithFallback src={getImageUrl(banner.imagenMobile)} alt={banner.tituloImg} tipo="Móvil" />
                 ) : (
                   <div className="h-24 w-32 bg-gray-200 border rounded mt-1 flex items-center justify-center">
                     <span className="text-gray-500 text-xs">Sin imagen Móvil</span>
@@ -79,6 +80,29 @@ export default function DestacadosStrDetail() {
             >
               <PencilSquareIcon className="w-5 h-5" />
               Editar
+            </Button>
+            <Button
+              color="red"
+              className="flex items-center gap-2 bg-red-100 text-red-700 hover:bg-red-200 border-none"
+              onClick={async () => {
+                if (window.confirm('¿Seguro que deseas eliminar este destacado?')) {
+                  try {
+                    const res = await fetch(`${API_BASE_URL}/api/destacadosStreaming/${banner.IDBannerStreaming}`, {
+                      method: 'DELETE'
+                    });
+                    if (res.status === 204) {
+                      navigate('/destacados-streamings');
+                    } else {
+                      alert('No se pudo eliminar el destacado');
+                    }
+                  } catch {
+                    alert('Error eliminando destacado');
+                  }
+                }
+              }}
+            >
+              <TrashIcon className="w-5 h-5" />
+              Eliminar
             </Button>
           </div>
         </div>

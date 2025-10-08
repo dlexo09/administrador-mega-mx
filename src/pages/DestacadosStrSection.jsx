@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, Title, Text } from "@tremor/react";
-import { serverAPIsLocal } from "../config";
+import { API_BASE_URL } from "../config";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +12,7 @@ export default function DestacadosStreamings() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${serverAPIsLocal}/api/destacadosStreaming`)
+  fetch(`${API_BASE_URL}/api/destacadosStreaming`)
       .then((res) => res.json())
       .then((data) => {
         setStreamings(Array.isArray(data) ? data : []);
@@ -26,7 +26,15 @@ export default function DestacadosStreamings() {
 
   return (
     <Card className="bg-white shadow-lg rounded-xl p-6">
-      <Title>Destacados Streamings</Title>
+      <div className="flex items-center justify-between mb-2">
+        <Title>Destacados Streamings</Title>
+        <button
+          onClick={() => navigate('/destacados-streamings/nuevo')}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+          Nuevo destacado
+        </button>
+      </div>
       <Text className="text-gray-500 mb-4">Administración de banners destacados de streaming</Text>
       <div className="overflow-x-auto mt-2 rounded-lg shadow">
         <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg">

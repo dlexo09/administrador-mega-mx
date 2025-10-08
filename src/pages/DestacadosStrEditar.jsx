@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { getImageUrl } from "../lib/imageUtils";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Title, Text, Button } from "@tremor/react";
-import { serverAPIsLocal } from "../config";
+import { API_BASE_URL } from "../config";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 export default function DestacadosStrEditar() {
@@ -17,13 +18,70 @@ export default function DestacadosStrEditar() {
     createUser: "",
     ultimaActualizacion: ""
   });
+  const [uploadingPc, setUploadingPc] = useState(false);
+  const [uploadingMovil, setUploadingMovil] = useState(false);
+  const [previewPc, setPreviewPc] = useState("");
+  const [previewMovil, setPreviewMovil] = useState("");
+  // Subida de imagen PC
+  const handleFilePc = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingPc(true);
+    setPreviewPc(URL.createObjectURL(file));
+    try {
+      // Solicitar presigned-url
+  const presignedRes = await fetch(`${API_BASE_URL}/api/destacadosStreaming/presigned-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, filetype: file.type, folder: 'uploads/destacados-streaming/' })
+      });
+      const { url, key } = await presignedRes.json();
+      // Subir a S3
+      await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+      });
+      setForm(prev => ({ ...prev, imagenPC: key }));
+    } catch (err) {
+      alert('Error subiendo imagen PC');
+    }
+    setUploadingPc(false);
+  };
+
+  // Subida de imagen Móvil
+  const handleFileMovil = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingMovil(true);
+    setPreviewMovil(URL.createObjectURL(file));
+    try {
+      // Solicitar presigned-url
+  const presignedRes = await fetch(`${API_BASE_URL}/api/destacadosStreaming/presigned-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, filetype: file.type, folder: 'uploads/destacados-streaming/' })
+      });
+      const { url, key } = await presignedRes.json();
+      // Subir a S3
+      await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+      });
+      setForm(prev => ({ ...prev, imagenMobile: key }));
+    } catch (err) {
+      alert('Error subiendo imagen móvil');
+    }
+    setUploadingMovil(false);
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    fetch(`${serverAPIsLocal}/api/destacadosStreaming/${id}`)
+  fetch(`${API_BASE_URL}/api/destacadosStreaming/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo obtener el banner");
         return res.json();
@@ -49,7 +107,7 @@ export default function DestacadosStrEditar() {
     setSuccess(false);
     setLoading(true);
     try {
-      const res = await fetch(`${serverAPIsLocal}/api/destacadosStreaming/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/api/destacadosStreaming/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, ultimaActualizacion: new Date().toISOString() })
@@ -79,37 +137,71 @@ export default function DestacadosStrEditar() {
         <Text className="mt-4">Cargando...</Text>
       ) : (
         <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="font-semibold">Partner:</label>
-            <input name="partnerName" value={form.partnerName} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
-          </div>
-          <div>
-            <label className="font-semibold">Tipo de Imagen:</label>
-            <input name="tipoImg" value={form.tipoImg} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
-          </div>
+          {/* Ocultamos campos no editables para evitar confusión */}
           <div>
             <label className="font-semibold">Título:</label>
             <input name="tituloImg" value={form.tituloImg} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
           </div>
+          {/* Imagen PC */}
           <div>
-            <label className="font-semibold">Imagen PC (URL):</label>
-            <input name="imagenPC" value={form.imagenPC} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
+            <label className="font-semibold">Imagen PC:</label>
+            <input type="file" accept="image/*" onChange={handleFilePc} className="border rounded px-2 py-1 w-full" />
+            {uploadingPc && <span className="text-blue-500">Subiendo imagen...</span>}
           </div>
+          {/* Imagen Móvil */}
           <div>
-            <label className="font-semibold">Imagen Móvil (URL):</label>
-            <input name="imagenMobile" value={form.imagenMobile} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
+            <label className="font-semibold">Imagen Móvil:</label>
+            <input type="file" accept="image/*" onChange={handleFileMovil} className="border rounded px-2 py-1 w-full" />
+            {uploadingMovil && <span className="text-blue-500">Subiendo imagen...</span>}
           </div>
-          <div>
-            <label className="font-semibold">Status:</label>
-            <select name="status" value={form.status} onChange={handleChange} className="border rounded px-2 py-1 w-full">
-              <option value={1}>Activo</option>
-              <option value={0}>Inactivo</option>
-            </select>
+          {/* Preview de imágenes */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {(previewPc || form.imagenPC) && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  {previewPc ? 'Preview PC (nuevo):' : 'Imagen PC actual:'}
+                </h3>
+                <img 
+                  src={previewPc || getImageUrl(form.imagenPC)} 
+                  alt="Preview PC" 
+                  className="h-72 max-w-full object-contain border rounded mt-2" 
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                <div 
+                  style={{ display: 'none' }} 
+                  className="w-full h-32 bg-gray-200 border rounded-md flex items-center justify-center"
+                >
+                  <span className="text-gray-500 text-sm">Error cargando imagen PC</span>
+                </div>
+              </div>
+            )}
+            {(previewMovil || form.imagenMobile) && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  {previewMovil ? 'Preview Móvil (nuevo):' : 'Imagen Móvil actual:'}
+                </h3>
+                <img 
+                  src={previewMovil || getImageUrl(form.imagenMobile)} 
+                  alt="Preview Móvil" 
+                  className="h-72 max-w-full object-contain border rounded mt-2" 
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                <div 
+                  style={{ display: 'none' }} 
+                  className="w-full h-32 bg-gray-200 border rounded-md flex items-center justify-center"
+                >
+                  <span className="text-gray-500 text-sm">Error cargando imagen Móvil</span>
+                </div>
+              </div>
+            )}
           </div>
-          <div>
-            <label className="font-semibold">Usuario que crea:</label>
-            <input name="createUser" value={form.createUser} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
-          </div>
+          {/* Ocultamos campos no editables para evitar confusión */}
           <div className="pt-4">
             <Button type="submit" color="blue" className="w-full">Guardar cambios</Button>
           </div>

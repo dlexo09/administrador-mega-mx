@@ -28,6 +28,7 @@ import CuponeraEditar from "../pages/CuponeraEditar";
 import DestacadosStreamings from "../pages/DestacadosStrSection";
 import DestacadosStrEditar from "../pages/DestacadosStrEditar";
 import DestacadosStrDetail from "../pages/DestacadosStrDetail";
+import DestacadosStrNuevo from "../pages/DestacadosStrNuevo";
 
 // Importamos componentes placeholder para los que aún no existen
 // Esto evita errores 500 por componentes no encontrados
@@ -288,6 +289,7 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
 
           {/* Destacados Streamings */}
           <Route path="/destacados-streamings" element={<DestacadosStreamings />} />
+          <Route path="/destacados-streamings/nuevo" element={<DestacadosStrNuevo />} />
           <Route path="/destacados-streamings/editar/:id" element={<DestacadosStrEditar />} />
           <Route path="/destacados-streamings/:id" element={<DestacadosStrDetail />} />
 
