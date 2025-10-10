@@ -1,9 +1,13 @@
+  // Función para cancelar y volver atrás
+  const handleCancel = () => {
+    navigate(-1);
+  };
 import { useEffect, useState } from "react";
 import { getImageUrl } from "../lib/imageUtils";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Title, Text, Button } from "@tremor/react";
 import { API_BASE_URL } from "../config";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 
 export default function DestacadosStrEditar() {
   const { id } = useParams();
@@ -122,6 +126,11 @@ export default function DestacadosStrEditar() {
     }
   };
 
+  // Función para cancelar y volver atrás
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
   return (
     <Card className="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto mt-8">
       <div className="flex items-center mb-6">
@@ -141,6 +150,10 @@ export default function DestacadosStrEditar() {
           <div>
             <label className="font-semibold">Título:</label>
             <input name="tituloImg" value={form.tituloImg} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
+            <div className="mt-2 p-2 bg-gray-50 border rounded">
+              <span className="font-semibold text-xs text-gray-500">Vista previa del título:</span>
+              <div className="mt-1 text-base" dangerouslySetInnerHTML={{ __html: form.tituloImg }} />
+            </div>
           </div>
           {/* Imagen PC */}
           <div>
@@ -202,9 +215,27 @@ export default function DestacadosStrEditar() {
             )}
           </div>
           {/* Ocultamos campos no editables para evitar confusión */}
-          <div className="pt-4">
-            <Button type="submit" color="blue" className="w-full">Guardar cambios</Button>
-          </div>
+          {/* Botones de acción */}
+            <div className="flex justify-end gap-2 pt-6">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="inline-flex items-center gap-2 px-6 py-2 bg-[#6B7280] text-white rounded border border-[#E3E8F0] hover:bg-[#4B5563] transition font-normal shadow-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-2 px-6 py-2 bg-[#3973E7] text-white rounded border border-[#E3E8F0] hover:bg-[#2C5CB8] transition font-normal shadow-sm"
+                disabled={loading}
+              >
+                <PencilSquareIcon className="w-5 h-5" />
+                Guardar cambios
+              </button>
+            </div>
           {error && <Text className="mt-2 text-red-600">{error}</Text>}
           {success && <Text className="mt-2 text-green-600">¡Banner editado correctamente!</Text>}
         </form>

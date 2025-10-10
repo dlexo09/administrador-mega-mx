@@ -81,6 +81,7 @@ export default function DestacadosStrDetail() {
               <PencilSquareIcon className="w-5 h-5" />
               Editar
             </Button>
+            {/*
             <Button
               color="red"
               className="flex items-center gap-2 bg-red-100 text-red-700 hover:bg-red-200 border-none"
@@ -104,6 +105,7 @@ export default function DestacadosStrDetail() {
               <TrashIcon className="w-5 h-5" />
               Eliminar
             </Button>
+            */}
           </div>
         </div>
       ) : null}

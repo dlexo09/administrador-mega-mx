@@ -8,6 +8,7 @@ export default function DestacadosStreamings() {
   const [streamings, setStreamings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,14 +29,25 @@ export default function DestacadosStreamings() {
     <Card className="bg-white shadow-lg rounded-xl p-6">
       <div className="flex items-center justify-between mb-2">
         <Title>Destacados Streamings</Title>
+        {/*
         <button
           onClick={() => navigate('/destacados-streamings/nuevo')}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
         >
           Nuevo destacado
         </button>
+        */}
       </div>
       <Text className="text-gray-500 mb-4">Administración de banners destacados de streaming</Text>
+      <div className="mb-4 flex justify-start">
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Buscar por título, partner o tipo..."
+          className="border px-3 py-2 rounded w-72"
+        />
+      </div>
       <div className="overflow-x-auto mt-2 rounded-lg shadow">
         <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg">
           <thead className="bg-gray-50">
@@ -43,7 +55,7 @@ export default function DestacadosStreamings() {
               <th className="px-4 py-2 text-left">ID</th>
               <th className="px-4 py-2 text-left">Partner</th>
               <th className="px-4 py-2 text-left">Tipo</th>
-              <th className="px-4 py-2 text-left">Título</th>
+                <th className="px-4 py-2 text-left w-1/4 max-w-xs whitespace-nowrap overflow-hidden text-ellipsis">Título</th>
               <th className="px-4 py-2 text-left">Última Actualización</th>
               <th className="px-4 py-2 text-left">Acciones</th>
             </tr>
@@ -68,12 +80,17 @@ export default function DestacadosStreamings() {
                 </td>
               </tr>
             ) : (
-              streamings.map((item) => (
+              streamings
+                .filter(item => {
+                  const texto = `${item.tituloImg} ${item.partnerName} ${item.tipoImg}`.toLowerCase();
+                  return texto.includes(search.toLowerCase());
+                })
+                .map((item) => (
                 <tr key={item.IDBannerStreaming} className="border-b hover:bg-blue-50 transition-colors">
                   <td className="px-4 py-2">{item.IDBannerStreaming}</td>
                   <td className="px-4 py-2">{item.partnerName}</td>
                   <td className="px-4 py-2">{item.tipoImg}</td>
-                  <td className="px-4 py-2">{item.tituloImg}</td>
+                    <td className="px-4 py-2 w-1/4 max-w-xs whitespace-nowrap overflow-hidden text-ellipsis">{item.tituloImg}</td>
                   <td className="px-4 py-2">{item.ultimaActualizacion ? new Date(item.ultimaActualizacion).toLocaleString() : '-'}</td>
                   <td className="px-4 py-2 space-x-2 text-left">
                     <button
