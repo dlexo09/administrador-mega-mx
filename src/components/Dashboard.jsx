@@ -29,6 +29,7 @@ import DestacadosStreamings from "../pages/DestacadosStrSection";
 import DestacadosStrEditar from "../pages/DestacadosStrEditar";
 import DestacadosStrDetail from "../pages/DestacadosStrDetail";
 import DestacadosStrNuevo from "../pages/DestacadosStrNuevo";
+import SocialMediaSection from "../pages/SocialMediaSection";
 
 // Importamos componentes placeholder para los que aún no existen
 // Esto evita errores 500 por componentes no encontrados
@@ -178,9 +179,12 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                 >
                   Gestionar Trivias
                 </button>
+              </SidebarMenu>
+              
+              <SidebarMenu title="Footer">
                 <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
-                  onClick={() => navigate("/redes-sociales")}
+                  onClick={() => navigate("/redesSociales")}
                 >
                   Redes Sociales
                 </button>
@@ -292,6 +296,9 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/destacados-streamings/nuevo" element={<DestacadosStrNuevo />} />
           <Route path="/destacados-streamings/editar/:id" element={<DestacadosStrEditar />} />
           <Route path="/destacados-streamings/:id" element={<DestacadosStrDetail />} />
+
+          {/* Redes Sociales */}
+          <Route path="/redesSociales" element={<SocialMediaSection />} />
 
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={
