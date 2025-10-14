@@ -29,6 +29,9 @@ import DestacadosStreamings from "../pages/DestacadosStrSection";
 import DestacadosStrEditar from "../pages/DestacadosStrEditar";
 import DestacadosStrDetail from "../pages/DestacadosStrDetail";
 import DestacadosStrNuevo from "../pages/DestacadosStrNuevo";
+import SocialMediaDetail from "../pages/SocialMediaDetail";
+import SocialMediaEditar from "../pages/SocialMediaEditar";
+import SocialMediaNuevo from "../pages/SocialMediaNuevo";
 import SocialMediaSection from "../pages/SocialMediaSection";
 
 // Importamos componentes placeholder para los que aún no existen
@@ -299,6 +302,9 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
 
           {/* Redes Sociales */}
           <Route path="/redesSociales" element={<SocialMediaSection />} />
+          <Route path="/redesSociales/:id" element={<SocialMediaDetail />} />
+          <Route path="/redesSociales/editar/:id" element={<SocialMediaEditar />} />
+          <Route path="/redesSociales/nuevo" element={<SocialMediaNuevo />} />
 
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={

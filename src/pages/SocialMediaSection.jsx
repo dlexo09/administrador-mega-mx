@@ -88,14 +88,14 @@ export default function SocialMediaSection() {
             Administración de redes sociales del footer
           </Text>
         </div>
-        {/* <Button color="blue" className="shadow px-4" onClick={() => navigate("/redesSociales/nuevo")}>
-          <div className="flex items-center justify-center gap-2 whitespace-nowrap">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            <span>Nueva Red Social</span>
-          </div>
-        </Button> */}
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition"
+          onClick={() => navigate("/redesSociales/nuevo")}
+        >
+          <PlusIcon className="w-5 h-5" />
+          Nueva Red Social
+        </button>
       </div>
 
       <div className="flex items-center gap-4 mt-4 mb-2">
@@ -156,20 +156,22 @@ export default function SocialMediaSection() {
                   </td>
                   <td className="px-4 py-2">{red.CreateAt ? new Date(red.CreateAt).toLocaleString() : '-'}</td>
                   <td className="px-2 py-2 space-x-2 text-left">
-                    {/* Botón Ver (solo diseño, sin funcionalidad) */}
+                    {/* Botón Ver funcional */}
                     <button
                       type="button"
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 rounded hover:bg-blue-100 transition"
                       title="Ver"
+                      onClick={() => navigate(`/redesSociales/${red.idSocialMedia}`)}
                     >
                       <EyeIcon className="w-4 h-4" />
                       Ver
                     </button>
-                    {/* Botón Editar (solo diseño, sin funcionalidad) */}
+                    {/* Botón Editar funcional */}
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition"
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 rounded hover:bg-blue-200 transition text-blue-700"
                       title="Editar"
+                      onClick={() => navigate(`/redesSociales/editar/${red.idSocialMedia}`)}
                     >
                       <PencilSquareIcon className="w-4 h-4" />
                       Editar
