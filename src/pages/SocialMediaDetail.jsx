@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Title, Text, Button } from "@tremor/react";
-import { serverAPIsLocal } from "../config";
+
+import { API_BASE_URL } from "../config";
 import { ArrowLeftIcon, PencilSquareIcon, TrashIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
+import { getImageUrl } from '../lib/imageUtils';
 
 export default function SocialMediaDetail() {
   const { id } = useParams();
@@ -10,10 +12,13 @@ export default function SocialMediaDetail() {
   const [socialMedia, setSocialMedia] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+
 
   useEffect(() => {
     setLoading(true);
-  fetch(`${serverAPIsLocal}/api/redesSociales/${id}`)
+  fetch(`${API_BASE_URL}/api/redesSociales/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("No se pudo obtener la red social");
         return res.json();
@@ -52,25 +57,37 @@ export default function SocialMediaDetail() {
             {socialMedia.iconSocialMedia && (
               <div>
                 <span className="font-semibold">Icono:</span><br />
-                <div className="inline-flex items-center justify-center h-12 w-12 bg-gray-200 border rounded mt-1">
+                <div className="mt-2">
                   <img
-                    src={socialMedia.iconSocialMedia}
+                    src={getImageUrl(socialMedia.iconSocialMedia)}
                     alt="icono red social"
-                    className="h-8 w-8 object-contain"
-                    onError={e => e.target.style.display = "none"}
+                    className="h-16 w-16 object-contain bg-gray-100 border rounded p-1"
+                    onError={e => {
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "block";
+                    }}
                   />
+                  <a
+                    href={getImageUrl(socialMedia.iconSocialMedia)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline text-sm"
+                    style={{ display: 'none' }}
+                  >
+                    Ver imagen en una pestaña nueva
+                  </a>
                 </div>
               </div>
             )}
             <div><span className="font-semibold">Orden:</span> {socialMedia.orderSocialMedia}</div>
             <div><span className="font-semibold">Estatus:</span> {socialMedia.status === 1 ? <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold border border-green-300">ACTIVO</span> : <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold border border-red-300">INACTIVO</span>}</div>
             <div><span className="font-semibold">Fecha de creación:</span> {socialMedia.CreateAt ? new Date(socialMedia.CreateAt).toLocaleString() : '-'}</div>
-            {/* Si tienes imagen, agrégala aquí */}
+
             {socialMedia.imgSocialMedia && (
               <div>
                 <span className="font-semibold">Imagen:</span><br />
                 <img
-                  src={socialMedia.imgSocialMedia}
+                  src={resolveS3(socialMedia.imgSocialMedia)}
                   alt={socialMedia.titleSocialMedia}
                   className="h-24 max-w-full object-contain border rounded mt-1"
                   onError={e => e.target.style.display = "none"}
@@ -82,8 +99,28 @@ export default function SocialMediaDetail() {
             <Button icon={PencilSquareIcon} color="blue" onClick={() => navigate(`/redesSociales/editar/${socialMedia.idSocialMedia}`)}>
               Editar
             </Button>
-            <Button icon={TrashIcon} color="red" onClick={() => {/* lógica para eliminar */}}>
-              Eliminar
+            <Button icon={TrashIcon} color="red" onClick={async () => {
+              if (!window.confirm('¿Estás seguro que deseas eliminar esta red social? Esta acción no se puede deshacer.')) return;
+              try {
+                setDeleting(true);
+                const res = await fetch(`${API_BASE_URL}/api/redesSociales/${socialMedia.idSocialMedia}`, { method: 'DELETE' });
+                if (res.status === 204 || res.ok) {
+                  alert('Red social eliminada');
+                  navigate('/redesSociales');
+                } else if (res.status === 404) {
+                  alert('Red social no encontrada');
+                } else {
+                  const txt = await res.text();
+                  throw new Error(txt || 'Error al eliminar');
+                }
+              } catch (err) {
+                console.error('Error eliminando red social:', err);
+                alert('Error al eliminar: ' + err.message);
+              } finally {
+                setDeleting(false);
+              }
+            }}>
+              {deleting ? 'Eliminando...' : 'Eliminar'}
             </Button>
           </div>
         </>

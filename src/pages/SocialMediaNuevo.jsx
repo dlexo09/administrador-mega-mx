@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { serverAPIsLocal } from "../config";
+import { API_BASE_URL } from "../config";
+import { getImageUrl } from '../lib/imageUtils';
 
 const SocialMediaNuevo = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingIcon, setUploadingIcon] = useState(false);
+  const [previewIcon, setPreviewIcon] = useState("");
+  const [iconFile, setIconFile] = useState(null);
   const [formData, setFormData] = useState({
   titleSocialMedia: "",
   linkSocialMedia: "",
@@ -20,12 +24,42 @@ const SocialMediaNuevo = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setIconFile(file);
+    setPreviewIcon(URL.createObjectURL(file));
+    setFormData((prev) => ({ ...prev, iconSocialMedia: "" }));
+    setError("");
+    try {
+      setUploadingIcon(true);
+      // Obtener presigned URL
+      const presignedRes = await fetch(`${API_BASE_URL}/api/redesSociales/presigned-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, filetype: file.type })
+      });
+      if (!presignedRes.ok) throw new Error('No se pudo obtener la URL prefirmada');
+      const { url, key } = await presignedRes.json();
+      // Subir a S3
+      const uploadRes = await fetch(url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      if (!uploadRes.ok) throw new Error('Error subiendo a S3');
+      setFormData((prev) => ({ ...prev, iconSocialMedia: key }));
+    } catch (err) {
+      console.error('Error subiendo icono:', err);
+      setError('No se pudo subir el icono');
+      setFormData((prev) => ({ ...prev, iconSocialMedia: "" }));
+    } finally {
+      setUploadingIcon(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${serverAPIsLocal}/api/redesSociales`, {
+  const res = await fetch(`${API_BASE_URL}/api/redesSociales`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -58,7 +92,21 @@ const SocialMediaNuevo = () => {
           </div>
           <div>
             <label className="font-semibold">Icono:</label>
-            <input type="text" name="iconSocialMedia" value={formData.iconSocialMedia} onChange={handleChange} className="border rounded px-2 py-1 w-full" />
+            <input type="file" accept="image/*" onChange={handleFileChange} className="border rounded px-2 py-1 w-full" />
+            <div className="mt-2 inline-flex items-center">
+              <div className="h-10 w-10 bg-gray-200 border rounded flex items-center justify-center">
+                {previewIcon ? (
+                  <img src={previewIcon} alt="preview" className="h-8 w-8 object-contain" />
+                ) : formData.iconSocialMedia ? (
+                  <img src={getImageUrl(formData.iconSocialMedia)} alt="icono" className="h-8 w-8 object-contain" />
+                ) : (
+                  <span className="text-gray-400 text-xs">Sin icono</span>
+                )}
+              </div>
+              <div className="ml-3 text-sm text-gray-600">
+                {uploadingIcon ? 'Subiendo...' : (formData.iconSocialMedia ? 'Icono Cargado' : '')}
+              </div>
+            </div>
           </div>
           <div>
             <label className="font-semibold">Orden:</label>
