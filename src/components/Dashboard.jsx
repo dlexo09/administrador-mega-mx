@@ -24,6 +24,9 @@ import BannerAvisosDetail from "../pages/BannerAvisosDetail";
 import CardsStreamingList from "../pages/CardsStreamingList";
 import CardsStreamingForm from "../pages/CardsStreamingForm";
 import CardsStreamingDetail from "../pages/CardsStreamingDetail";
+import TarifarioImportar from "../pages/TarifarioImportar";
+import TarifarioLista from "../pages/TarifarioLista";
+import TarifarioAuditoria from "../pages/TarifarioAuditoria";
 
 
 import CuponeraSection from "../pages/CuponeraSection";
@@ -99,6 +102,7 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                 >
                   Sucursales
                 </button>
+                
                 {/* <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
                   onClick={() => navigate("/regiones")}
@@ -119,6 +123,18 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                   onClick={() => navigate("/tarifario/importar")}
                 >
                   Importar Tarifario
+                </button>
+                <button
+                  className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
+                  onClick={() => navigate("/tarifario/lista")}
+                >
+                  Ver Tarifarios
+                </button>
+                <button
+                  className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
+                  onClick={() => navigate("/tarifario/auditoria")}
+                >
+                  Historial de Importaciones
                 </button>
                 <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
@@ -181,12 +197,12 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                 >
                   Gestionar Trivias
                 </button>
-                <button
+                {/* <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
                   onClick={() => navigate("/redes-sociales")}
                 >
                   Redes Sociales
-                </button>
+                </button> */}
               </SidebarMenu>
             </>
           )}
@@ -286,6 +302,9 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/cards-streaming/nuevo" element={<CardsStreamingForm />} />
           <Route path="/cards-streaming/editar/:id" element={<CardsStreamingForm />} />
           <Route path="/cards-streaming/:id" element={<CardsStreamingDetail />} />
+          <Route path="/tarifario/importar" element={<TarifarioImportar />} />
+          <Route path="/tarifario/lista" element={<TarifarioLista />} />
+          <Route path="/tarifario/auditoria" element={<TarifarioAuditoria />} />
 
 
           {/* Cuponera */}

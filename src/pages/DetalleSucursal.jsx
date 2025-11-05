@@ -136,6 +136,22 @@ export default function DetalleSucursal() {
                     </span>
                 </div>
                 <div className="border p-4 rounded-lg bg-gray-50">
+                    <Text className="text-xs text-gray-500">Mascara</Text>
+                    <Text className="text-lg font-semibold">{sucursal.mascara || "No definida"}</Text>
+                </div>
+                <div className="border p-4 rounded-lg bg-gray-50">
+                    <Text className="text-xs text-gray-500">Venta en línea</Text>
+                    <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-bold border mt-1 ${
+                            sucursal.online === 1
+                                ? "bg-green-100 text-green-700 border-green-300"
+                                : "bg-red-100 text-red-700 border-red-300"
+                        }`}
+                    >
+                        {sucursal.online === 1 ? "ACTIVO" : "INACTIVO"}
+                    </span>
+                </div>
+                <div className="border p-4 rounded-lg bg-gray-50">
                     <Text className="text-xs text-gray-500">Latitud</Text>
                     <Text className="text-lg font-semibold">{sucursal.latitud || "No definida"}</Text>
                 </div>

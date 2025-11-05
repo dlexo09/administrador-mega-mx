@@ -155,24 +155,35 @@ export default function Sucursales() {
                             </th>
                             <th
                                 className="px-4 py-2 text-left cursor-pointer select-none"
+                                onClick={() => handleSort("mascara")}
+                            >
+                                Mascara {sortIcon("mascara")}
+                            </th>
+                            <th
+                                className="px-4 py-2 text-left cursor-pointer select-none"
                                 onClick={() => handleSort("status")}
                             >
                                 Status {sortIcon("status")}
                             </th>
-                            <th className="px-4 py-2 text-left">Ubicación</th>
+                            <th
+                                className="px-4 py-2 text-left cursor-pointer select-none"
+                                onClick={() => handleSort("online")}
+                            >
+                                Venta online {sortIcon("online")}
+                            </th>
                             <th className="px-4 py-2 text-left">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan={5} className="text-center py-4">
+                                <td colSpan={6} className="text-center py-4">
                                     <Text>Cargando...</Text>
                                 </td>
                             </tr>
                         ) : paginated.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="text-center py-4">
+                                <td colSpan={6} className="text-center py-4">
                                     <Text>No hay resultados.</Text>
                                 </td>
                             </tr>
@@ -184,6 +195,7 @@ export default function Sucursales() {
                                 >
                                     <td className="px-4 py-2">{item.idSucursal}</td>
                                     <td className="px-4 py-2">{item.sucursalName}</td>
+                                    <td className="px-4 py-2">{item.mascara}</td>
                                     <td className="px-4 py-2">
                                         <span
                                             className={`px-2 py-1 rounded-full text-xs font-bold border ${item.status === 1
@@ -195,9 +207,15 @@ export default function Sucursales() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-2">
-                                        {item.latitud && item.longitud
-                                            ? `${parseFloat(item.latitud).toFixed(6)}, ${parseFloat(item.longitud).toFixed(6)}`
-                                            : "-"}
+                                        <span
+                                            className={`px-2 py-1 rounded-full text-xs font-bold border ${
+                                                item.online === 1
+                                                    ? "bg-green-100 text-green-700 border-green-300"
+                                                    : "bg-red-100 text-red-700 border-red-300"
+                                            }`}
+                                        >
+                                            {item.online === 1 ? "ACTIVO" : "INACTIVO"}
+                                        </span>
                                     </td>
                                     <td className="px-4 py-2 space-x-2">
                                         <Link

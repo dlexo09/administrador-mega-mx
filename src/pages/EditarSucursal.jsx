@@ -11,7 +11,9 @@ export default function EditarSucursal() {
         sucursalName: "",
         status: 1,
         latitud: "",
-        longitud: ""
+        longitud: "",
+        mascara: "",
+        online: 0
     });
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
@@ -29,7 +31,9 @@ export default function EditarSucursal() {
                     sucursalName: data.sucursalName,
                     status: data.status,
                     latitud: data.latitud || "",
-                    longitud: data.longitud || ""
+                    longitud: data.longitud || "",
+                    mascara: data.mascara || "",
+                    online: data.online === 1 ? 1 : 0
                 });
             } catch (err) {
                 setError("Error al cargar la sucursal: " + err.message);
@@ -58,6 +62,14 @@ export default function EditarSucursal() {
         }));
     };
 
+    // Botón de venta en línea
+    const toggleOnline = () => {
+        setSucursalData(s => ({
+            ...s,
+            online: s.online === 1 ? 0 : 1
+        }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -73,6 +85,9 @@ export default function EditarSucursal() {
             if (sucursalData.longitud && isNaN(parseFloat(sucursalData.longitud))) {
                 throw new Error("La longitud debe ser un número válido");
             }
+            if (!sucursalData.mascara) {
+                throw new Error("La máscara es obligatoria");
+            }
 
             const response = await fetch(`${API_BASE_URL}/api/sucursales/${id}`, {
                 method: "PUT",
@@ -82,7 +97,8 @@ export default function EditarSucursal() {
                 body: JSON.stringify({
                     ...sucursalData,
                     latitud: sucursalData.latitud ? parseFloat(sucursalData.latitud) : null,
-                    longitud: sucursalData.longitud ? parseFloat(sucursalData.longitud) : null
+                    longitud: sucursalData.longitud ? parseFloat(sucursalData.longitud) : null,
+                    online: sucursalData.online === 1 ? 1 : 0
                 }),
             });
 
@@ -141,6 +157,19 @@ export default function EditarSucursal() {
                     />
                 </div>
 
+                <div className="border p-4 rounded-lg bg-gray-50">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Mascara (nombre mostrado)
+                    </label>
+                    <TextInput
+                        name="mascara"
+                        value={sucursalData.mascara}
+                        onChange={handleChange}
+                        placeholder="Ej. Sucursal Centro"
+                        className="mt-1"
+                    />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="border p-4 rounded-lg bg-gray-50">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -182,6 +211,23 @@ export default function EditarSucursal() {
                     </Button>
                     <Text className="text-gray-500 text-sm">
                         Haz clic para cambiar el estado
+                    </Text>
+                </div>
+
+                <div className="flex items-center gap-4 mt-2">
+                    <Button
+                        type="button"
+                        onClick={toggleOnline}
+                        className={`px-4 py-2 rounded font-bold border-none shadow-sm transition-colors
+                            ${sucursalData.online === 1
+                                ? "bg-green-600 hover:bg-green-700 text-white"
+                                : "bg-red-600 hover:bg-red-700 text-white"
+                            }`}
+                    >
+                        {sucursalData.online === 1 ? "Venta en línea activa" : "Venta en línea inactiva"}
+                    </Button>
+                    <Text className="text-gray-500 text-sm">
+                        Haz clic para cambiar venta en línea
                     </Text>
                 </div>
 
