@@ -33,10 +33,23 @@ export default function Sucursales() {
         loadSucursales();
     }, []);
 
-    // Filtro por nombre de sucursal
-    const filtered = sucursales.filter((item) =>
-        item.sucursalName?.toLowerCase().includes(search.toLowerCase())
-    );
+     // Función para normalizar texto (quitar acentos)
+    const normalizeText = (text) => {
+        return text
+            .normalize('NFD') // Descompone caracteres acentuados
+            .replace(/[\u0300-\u036f]/g, '') // Quita los diacríticos
+            .toLowerCase();
+    };
+
+     // Filtro por ID, nombre de sucursal y mascara (con soporte para acentos)
+    const filtered = sucursales.filter((item) => {
+        const searchTerm = normalizeText(search);
+        return (
+            normalizeText(item.sucursalName || '').includes(searchTerm) ||
+            normalizeText(item.mascara || '').includes(searchTerm) ||
+            item.idSucursal?.toString().includes(search) // ID no necesita normalización
+        );
+    });
 
     // Ordenamiento
     const sorted = [...filtered].sort((a, b) => {
@@ -125,7 +138,7 @@ export default function Sucursales() {
 
             <div className="flex items-center gap-4 mt-4 mb-2">
                 <TextInput
-                    placeholder="Buscar sucursal..."
+                    placeholder="Buscar por ID, nombre o máscara..."
                     value={search}
                     onChange={(e) => {
                         setSearch(e.target.value);
@@ -199,8 +212,8 @@ export default function Sucursales() {
                                     <td className="px-4 py-2">
                                         <span
                                             className={`px-2 py-1 rounded-full text-xs font-bold border ${item.status === 1
-                                                    ? "bg-green-100 text-green-700 border-green-300"
-                                                    : "bg-red-100 text-red-700 border-red-300"
+                                                ? "bg-green-100 text-green-700 border-green-300"
+                                                : "bg-red-100 text-red-700 border-red-300"
                                                 }`}
                                         >
                                             {item.status === 1 ? "ACTIVO" : "INACTIVO"}
@@ -208,11 +221,10 @@ export default function Sucursales() {
                                     </td>
                                     <td className="px-4 py-2">
                                         <span
-                                            className={`px-2 py-1 rounded-full text-xs font-bold border ${
-                                                item.online === 1
+                                            className={`px-2 py-1 rounded-full text-xs font-bold border ${item.online === 1
                                                     ? "bg-green-100 text-green-700 border-green-300"
                                                     : "bg-red-100 text-red-700 border-red-300"
-                                            }`}
+                                                }`}
                                         >
                                             {item.online === 1 ? "ACTIVO" : "INACTIVO"}
                                         </span>
@@ -237,8 +249,8 @@ export default function Sucursales() {
                                         <button
                                             onClick={() => handleStatus(item.idSucursal, item.status)}
                                             className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition ${item.status === 1
-                                                    ? "bg-red-100 text-red-700 hover:bg-red-200"
-                                                    : "bg-green-100 text-green-700 hover:bg-green-200"
+                                                ? "bg-red-100 text-red-700 hover:bg-red-200"
+                                                : "bg-green-100 text-green-700 hover:bg-green-200"
                                                 }`}
                                             title={item.status === 1 ? "Desactivar" : "Activar"}
                                         >
