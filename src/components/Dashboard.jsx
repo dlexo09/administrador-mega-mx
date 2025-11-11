@@ -83,7 +83,7 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md p-4">
         <div className="mb-8">
-          <img src="/mega.svg" alt="Logo" className="h-10 mx-auto" />
+          <img src="/mega-logo.png" alt="Logo" className="h-10 mx-auto" />
         </div>
         <nav className="space-y-2">
           <button
