@@ -11,8 +11,7 @@ const CuponeraNuevo = () => {
   const [sucursalesSeleccionadas, setSucursalesSeleccionadas] = useState([]);
   const [filtroSucursales, setFiltroSucursales] = useState("");
   const [seleccionarTodas, setSeleccionarTodas] = useState(false);
-  const [actualizandoSucursales, setActualizandoSucursales] = useState(false);
-  const [progresoSucursales, setProgresoSucursales] = useState({ total: 0, actual: 0, visible: false, mensaje: "" });
+  const [loadingSucursales, setLoadingSucursales] = useState(false);
   const [mostrarModalImportar, setMostrarModalImportar] = useState(false);
   const [textoImportacion, setTextoImportacion] = useState("");
   const [resultadosImportacion, setResultadosImportacion] = useState(null);
@@ -25,41 +24,36 @@ const CuponeraNuevo = () => {
       .then(data => setSucursalesDisponibles(data.map(s => ({ value: Number(s.idSucursal), label: s.sucursalName })))
       );
   }, []);
-  // Guardar permisos sucursal en lotes con barra de progreso
-  const guardarSucursalesBatch = async (idObjeto, sucursales, batchSize = 100) => {
-    setProgresoSucursales({ total: sucursales.length, actual: 0, visible: true, mensaje: "Guardando sucursales..." });
-    for (let i = 0; i < sucursales.length; i += batchSize) {
-      const lote = sucursales.slice(i, i + batchSize);
-      await Promise.allSettled(
-        lote.map(s =>
-          fetch(`${API_BASE_URL}/api/permisosSucursal`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              objetoName: "Cuponera",
-              idObjeto: Number(idObjeto),
-              idSucursal: Number(s.value)
-            })
-          })
-        )
-      );
-      setProgresoSucursales(prev => ({
-        ...prev,
-        actual: Math.min(prev.actual + lote.length, prev.total)
-      }));
-    }
-    setProgresoSucursales({ total: 0, actual: 0, visible: false, mensaje: "" });
-  };
 
-  // Guardar permisos sucursal (usa batch)
-  const guardarSucursales = async (idObjeto) => {
+  // NUEVA FUNCIÓN: Guardar sucursales en batch (mucho más rápido)
+  const guardarSucursalesBatch = async (idObjeto) => {
     try {
-      // Crear nuevos permisos en lotes
-      if (sucursalesSeleccionadas.length > 0) {
-        await guardarSucursalesBatch(idObjeto, sucursalesSeleccionadas);
+      setLoadingSucursales(true);
+
+      const sucursalIds = sucursalesSeleccionadas.map(s => s.value);
+
+      const response = await fetch(`${API_BASE_URL}/api/permisosSucursal/batch-replace`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          objetoName: "Cuponera",
+          idObjeto: Number(idObjeto),
+          sucursalIds: sucursalIds
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar permisos de sucursales');
       }
+
+      const result = await response.json();
+      console.log('Sucursales actualizadas:', result);
+
     } catch (error) {
       console.error("Error al gestionar permisos de sucursales:", error);
+      throw error; // Re-throw para manejar en handleSubmit
+    } finally {
+      setLoadingSucursales(false);
     }
   };
 
@@ -69,21 +63,17 @@ const CuponeraNuevo = () => {
     : sucursalesDisponibles;
 
   const toggleSeleccionarTodas = () => {
-    setActualizandoSucursales(true);
-    setProgresoSucursales({ total: sucursalesFiltradas.length, actual: 0, visible: true, mensaje: seleccionarTodas ? "Quitando sucursales..." : "Seleccionando sucursales..." });
-    setTimeout(() => {
-      if (seleccionarTodas) {
-        // Deseleccionar todas las filtradas
-        const ids = new Set(sucursalesFiltradas.map(s => s.value));
-        setSucursalesSeleccionadas(prev => prev.filter(s => !ids.has(s.value)));
-      } else {
-        // Seleccionar todas las filtradas
-        setSucursalesSeleccionadas(sucursalesFiltradas);
-      }
-      setSeleccionarTodas(!seleccionarTodas);
-      setActualizandoSucursales(false);
-      setProgresoSucursales({ total: 0, actual: 0, visible: false, mensaje: "" });
-    }, 400);
+    if (seleccionarTodas) {
+      // Deseleccionar todas las filtradas
+      const ids = new Set(sucursalesFiltradas.map(s => s.value));
+      setSucursalesSeleccionadas(prev => prev.filter(s => !ids.has(s.value)));
+    } else {
+      // Seleccionar todas las filtradas (sin duplicados)
+      const existingIds = new Set(sucursalesSeleccionadas.map(s => s.value));
+      const nuevasSucursales = sucursalesFiltradas.filter(s => !existingIds.has(s.value));
+      setSucursalesSeleccionadas(prev => [...prev, ...nuevasSucursales]);
+    }
+    setSeleccionarTodas(!seleccionarTodas);
   };
 
   // Importar sucursales desde texto
@@ -214,7 +204,11 @@ const CuponeraNuevo = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (actualizandoSucursales || progresoSucursales.visible) return;
+    if (loadingSucursales) {
+      alert('Espera a que termine de procesar las sucursales');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -237,13 +231,16 @@ const CuponeraNuevo = () => {
       if (response.status === 201) {
         const nuevo = await response.json();
         const idObjeto = nuevo.idCuponera || nuevo.id || nuevo.insertId;
-        await guardarSucursales(idObjeto);
+        
+        // Guardar sucursales usando el nuevo método batch
+        await guardarSucursalesBatch(idObjeto);
+        
         alert('Cupón creado exitosamente');
         navigate('/cuponera');
       }
     } catch (error) {
       console.error('Error creando cupón:', error);
-      alert('Error al crear el cupón');
+      alert('Error al crear el cupón: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -253,29 +250,22 @@ const CuponeraNuevo = () => {
     navigate('/cuponera');
   };
 
-  // Barra de progreso visual
-  const ProgresoBarra = ({ progreso }) => {
-    if (!progreso.visible || progreso.total === 0) return null;
-    const porcentaje = Math.round((progreso.actual / progreso.total) * 100);
-    return (
-      <div className="w-full my-4">
-        <div className="mb-1 text-sm text-blue-700 font-medium">{progreso.mensaje} ({progreso.actual}/{progreso.total})</div>
-        <div className="w-full bg-gray-200 rounded-full h-4">
-          <div
-            className="bg-blue-600 h-4 rounded-full transition-all"
-            style={{ width: `${porcentaje}%` }}
-          ></div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="container mx-auto p-6">
       <div className="bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-bold mb-6">Crear Nuevo Cupón</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <ProgresoBarra progreso={progresoSucursales} />
+          
+          {/* Indicador de carga para sucursales */}
+          {loadingSucursales && (
+            <div className="w-full my-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span className="text-blue-700 font-medium">Actualizando permisos de sucursales...</span>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Orden */}
             <div>
@@ -316,14 +306,11 @@ const CuponeraNuevo = () => {
                 <button
                   type="button"
                   onClick={toggleSeleccionarTodas}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                  disabled={actualizandoSucursales || progresoSucursales.visible}
+                  className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                  disabled={loadingSucursales}
                 >
                   {seleccionarTodas ? 'Deseleccionar todas' : 'Seleccionar todas las filtradas'}
                 </button>
-                {(actualizandoSucursales || progresoSucursales.visible) && (
-                  <span className="ml-2 text-blue-600 animate-pulse">Procesando...</span>
-                )}
               </div>
             </div>
             <div className="max-h-[300px] overflow-y-auto border rounded-lg">
@@ -336,10 +323,10 @@ const CuponeraNuevo = () => {
                     return (
                       <div key={sucursal.value} className={`p-2 ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                         <label className="flex items-center cursor-pointer">
-                          <input type="checkbox" checked={isSelected} onChange={() => {
-                            if (isSelected) setSucursalesSeleccionadas(prev => prev.filter(s => s.value !== sucursal.value));
-                            else setSucursalesSeleccionadas(prev => [...prev, sucursal]);
-                          }} className="h-4 w-4 text-blue-600 border-gray-300 rounded mr-2" />
+                            <input type="checkbox" checked={isSelected} onChange={() => {
+                              if (isSelected) setSucursalesSeleccionadas(prev => prev.filter(s => s.value !== sucursal.value));
+                              else setSucursalesSeleccionadas(prev => [...prev, sucursal]);
+                            }} className="h-4 w-4 text-blue-600 border-gray-300 rounded mr-2" disabled={loadingSucursales} />
                           <div className="text-sm truncate"><span className="text-gray-500 mr-1">{sucursal.value}:</span>{sucursal.label}</div>
                         </label>
                       </div>
