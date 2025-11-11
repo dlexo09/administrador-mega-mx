@@ -217,7 +217,7 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                   onClick={() => navigate("/redesSociales")}
                 >
                   Redes Sociales
-                </button> */}
+                </button> 
               </SidebarMenu>
             </>
           )}

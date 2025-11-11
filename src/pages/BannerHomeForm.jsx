@@ -35,7 +35,7 @@ export default function BannerHomeForm() {
 
     // Cargar datos si es edición
     useEffect(() => {
-        if (id) {
+        if (id && sucursalesDisponibles.length > 0) { // Agregar condición de longitud
             // Cargar datos del banner
             fetch(`${API_BASE_URL}/api/bannerhome/${id}`)
                 .then(res => res.json())
@@ -43,7 +43,7 @@ export default function BannerHomeForm() {
                     setForm(data);
                     setStatusBtn(data.status === 1);
                 });
-            
+
             // Cargar sucursales asociadas usando el nuevo endpoint batch
             fetch(`${API_BASE_URL}/api/permisosSucursal/batch/BannerHome/${id}`)
                 .then(res => res.json())
@@ -63,16 +63,16 @@ export default function BannerHomeForm() {
                     setSucursalesSeleccionadas([]);
                 });
         }
-    }, [id, sucursalesDisponibles]); // Agregar sucursalesDisponibles como dependencia
+    }, [id, sucursalesDisponibles.length]); // Cambiar dependencia
 
     // Cargar sucursales disponibles
     useEffect(() => {
         fetch(`${API_BASE_URL}/api/sucursales`)
             .then(res => res.json())
             .then(data => {
-                const sucursales = data.map(s => ({ 
-                    value: Number(s.idSucursal), 
-                    label: s.sucursalName 
+                const sucursales = data.map(s => ({
+                    value: Number(s.idSucursal),
+                    label: s.sucursalName
                 }));
                 setSucursalesDisponibles(sucursales);
             })
@@ -83,27 +83,69 @@ export default function BannerHomeForm() {
 
     // Subir imagen a S3 usando presigned URL
     const uploadToS3 = async (file) => {
-        const res = await fetch(`${API_BASE_URL}/api/banners-home/presigned-url`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ filename: file.name, filetype: file.type })
-        });
-        const { url, key } = await res.json();
-        await fetch(url, {
-            method: "PUT",
-            headers: { "Content-Type": file.type },
-            body: file
-        });
-        return key;
+        try {
+            // Limpiar el nombre del archivo para evitar caracteres problemáticos
+            const cleanFileName = file.name
+                .replace(/[^a-zA-Z0-9.\-_]/g, '_') // Reemplazar caracteres especiales con _
+                .replace(/_{2,}/g, '_') // Evitar múltiples _ seguidos
+                .replace(/^_+|_+$/g, ''); // Quitar _ del inicio y final
+
+            // Generar un nombre único para evitar colisiones
+            const timestamp = Date.now();
+            const randomString = Math.random().toString(36).substring(2, 8);
+            const extension = cleanFileName.split('.').pop();
+            const nameWithoutExt = cleanFileName.replace(/\.[^/.]+$/, "");
+
+            const finalFileName = `${timestamp}-${randomString}-${nameWithoutExt}.${extension}`;
+
+            console.log('Nombre original:', file.name);
+            console.log('Nombre limpio:', finalFileName);
+
+            const res = await fetch(`${API_BASE_URL}/api/banners-home/presigned-url`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    filename: finalFileName, // Usar el nombre limpio
+                    filetype: file.type || 'image/jpeg'
+                })
+            });
+
+            if (!res.ok) {
+                throw new Error(`Error obteniendo URL presignada: ${res.status}`);
+            }
+
+            const { url, key } = await res.json();
+
+            console.log('Subiendo a S3 con key:', key);
+
+            const uploadResponse = await fetch(url, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": file.type || 'image/jpeg'
+                },
+                body: file
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error(`Error subiendo a S3: ${uploadResponse.status}`);
+            }
+
+            console.log('Archivo subido exitosamente:', key);
+            return key;
+
+        } catch (error) {
+            console.error('Error en uploadToS3:', error);
+            throw new Error(`Error subiendo archivo: ${error.message}`);
+        }
     };
 
     // NUEVA FUNCIÓN: Guardar sucursales en batch (mucho más rápido)
     const guardarSucursalesBatch = async (idObjeto) => {
         try {
             setLoadingSucursales(true);
-            
+
             const sucursalIds = sucursalesSeleccionadas.map(s => s.value);
-            
+
             const response = await fetch(`${API_BASE_URL}/api/permisosSucursal/batch-replace`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -120,7 +162,7 @@ export default function BannerHomeForm() {
 
             const result = await response.json();
             console.log('Sucursales actualizadas:', result);
-            
+
         } catch (error) {
             console.error("Error al gestionar permisos de sucursales:", error);
             throw error; // Re-throw para manejar en handleSubmit
@@ -157,7 +199,7 @@ export default function BannerHomeForm() {
             const byId = new Map();
             const byName = new Map();
             const noFound = [];
-            
+
             items.forEach(item => {
                 if (/^\d+$/.test(item)) {
                     const idSucursal = Number(item);
@@ -169,8 +211,8 @@ export default function BannerHomeForm() {
                     }
                 } else {
                     const itemLower = item.toLowerCase();
-                    const sucursal = sucursalesDisponibles.find(s => 
-                        s.label.toLowerCase().includes(itemLower) || 
+                    const sucursal = sucursalesDisponibles.find(s =>
+                        s.label.toLowerCase().includes(itemLower) ||
                         itemLower.includes(s.label.toLowerCase())
                     );
                     if (sucursal) {
@@ -180,7 +222,7 @@ export default function BannerHomeForm() {
                     }
                 }
             });
-            
+
             setResultadosImportacion({
                 porId: Array.from(byId.values()),
                 porNombre: Array.from(byName.values()),
@@ -202,11 +244,11 @@ export default function BannerHomeForm() {
 
     const aplicarImportacion = () => {
         if (!resultadosImportacion) return;
-        
+
         const nuevasSucursales = [...resultadosImportacion.porId, ...resultadosImportacion.porNombre];
         const existingIds = new Set(sucursalesSeleccionadas.map(s => s.value));
         const sucursalesUnicas = nuevasSucursales.filter(s => !existingIds.has(s.value));
-        
+
         setSucursalesSeleccionadas(prev => [...prev, ...sucursalesUnicas]);
         cerrarModalImportacion();
     };
@@ -224,7 +266,7 @@ export default function BannerHomeForm() {
             alert('Espera a que termine de procesar las sucursales');
             return;
         }
-        
+
         setLoading(true);
 
         try {
@@ -258,10 +300,10 @@ export default function BannerHomeForm() {
 
             const resultado = await res.json();
             const idObjeto = resultado.idBannerHome || id;
-            
+
             // Guardar sucursales usando el nuevo método batch
             await guardarSucursalesBatch(idObjeto);
-            
+
             navigate("/bannerhome");
         } catch (error) {
             console.error('Error guardando banner:', error);
@@ -275,7 +317,7 @@ export default function BannerHomeForm() {
         <Card className="bg-white shadow-lg rounded-xl p-6 max-w-2xl mx-auto">
             <Title>{id ? "Editar Banner Home" : "Nuevo Banner Home"}</Title>
             <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
-                
+
                 {/* Indicador de carga para sucursales */}
                 {loadingSucursales && (
                     <div className="w-full my-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -294,7 +336,7 @@ export default function BannerHomeForm() {
                         required
                     />
                 </div>
-                
+
                 <div>
                     <Text>Link del botón</Text>
                     <TextInput
@@ -302,7 +344,7 @@ export default function BannerHomeForm() {
                         onChange={e => setForm({ ...form, linkButton: e.target.value })}
                     />
                 </div>
-                
+
                 <div>
                     <Text>Imagen Banner (PC)</Text>
                     <input
@@ -334,7 +376,7 @@ export default function BannerHomeForm() {
                         </div>
                     )}
                 </div>
-                
+
                 <div>
                     <Text>Imagen Banner (Mobile)</Text>
                     <input
@@ -366,7 +408,7 @@ export default function BannerHomeForm() {
                         </div>
                     )}
                 </div>
-                
+
                 <div>
                     <Text>Fecha/Hora de Inicio</Text>
                     <input
@@ -376,7 +418,7 @@ export default function BannerHomeForm() {
                         className="border rounded px-2 py-1"
                     />
                 </div>
-                
+
                 <div>
                     <Text>Fecha/Hora de Fin</Text>
                     <input
@@ -386,7 +428,7 @@ export default function BannerHomeForm() {
                         className="border rounded px-2 py-1"
                     />
                 </div>
-                
+
                 {/* Botón de status */}
                 <div className="border p-4 rounded-lg bg-gray-50">
                     <div className="flex items-center gap-4">
@@ -406,7 +448,7 @@ export default function BannerHomeForm() {
                         </Text>
                     </div>
                 </div>
-                
+
                 {/* Permisos por sucursal */}
                 <div>
                     <div className="flex items-center gap-2 mb-2">
@@ -418,14 +460,14 @@ export default function BannerHomeForm() {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="mb-3 space-y-3">
                         <div className="flex flex-col md:flex-row md:items-center gap-2">
-                            <TextInput 
-                                placeholder="Buscar sucursales..." 
-                                value={filtroSucursales} 
-                                onChange={(e) => setFiltroSucursales(e.target.value)} 
-                                className="max-w-md" 
+                            <TextInput
+                                placeholder="Buscar sucursales..."
+                                value={filtroSucursales}
+                                onChange={(e) => setFiltroSucursales(e.target.value)}
+                                className="max-w-md"
                             />
                             <Button
                                 type="button"
@@ -437,7 +479,7 @@ export default function BannerHomeForm() {
                                 Importar desde texto
                             </Button>
                         </div>
-                        
+
                         <div className="flex items-center justify-between bg-gray-50 p-3 border rounded-lg">
                             <div>
                                 <span className="text-sm font-medium">{sucursalesFiltradas.length} sucursales mostradas</span>
@@ -454,7 +496,7 @@ export default function BannerHomeForm() {
                             </button>
                         </div>
                     </div>
-                    
+
                     <div className="max-h-[300px] overflow-y-auto border rounded-lg">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 divide-x divide-y">
                             {sucursalesFiltradas.length === 0 ? (
@@ -467,17 +509,17 @@ export default function BannerHomeForm() {
                                     return (
                                         <div key={sucursal.value} className={`p-2 ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                                             <label className="flex items-center cursor-pointer">
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={isSelected} 
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
                                                     onChange={() => {
                                                         if (isSelected) {
                                                             setSucursalesSeleccionadas(prev => prev.filter(s => s.value !== sucursal.value));
                                                         } else {
                                                             setSucursalesSeleccionadas(prev => [...prev, sucursal]);
                                                         }
-                                                    }} 
-                                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded mr-2" 
+                                                    }}
+                                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
                                                     disabled={loadingSucursales}
                                                 />
                                                 <div className="text-sm truncate">
@@ -495,7 +537,7 @@ export default function BannerHomeForm() {
                         Si no seleccionas sucursales, este banner aplicará a todas.
                     </Text>
                 </div>
-                
+
                 {/* Botones */}
                 <div className="flex justify-between mt-8 pt-6 border-t">
                     <Button
@@ -542,7 +584,7 @@ export default function BannerHomeForm() {
                     </div>
                 </div>
             </form>
-            
+
             {/* Modal importar sucursales - MISMO CÓDIGO QUE ANTES */}
             {mostrarModalImportar && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
@@ -564,12 +606,12 @@ export default function BannerHomeForm() {
                                         <p className="text-gray-600 mb-2">
                                             Pega el listado de sucursales (IDs o nombres) separados por comas, saltos de línea o cualquier otro separador.
                                         </p>
-                                        <textarea 
-                                            ref={textareaRef} 
-                                            value={textoImportacion} 
-                                            onChange={(e) => setTextoImportacion(e.target.value)} 
-                                            className="w-full h-48 p-3 border border-gray-300 rounded-lg" 
-                                            placeholder="Ejemplo: 1, 2, 3, Sucursal Principal..." 
+                                        <textarea
+                                            ref={textareaRef}
+                                            value={textoImportacion}
+                                            onChange={(e) => setTextoImportacion(e.target.value)}
+                                            className="w-full h-48 p-3 border border-gray-300 rounded-lg"
+                                            placeholder="Ejemplo: 1, 2, 3, Sucursal Principal..."
                                         />
                                         <div className="text-xs text-gray-500 mt-1">
                                             Tip: Puedes copiar directamente desde Excel y pegar aquí.

@@ -96,8 +96,8 @@ export default function EditarSucursal() {
                 },
                 body: JSON.stringify({
                     ...sucursalData,
-                    latitud: sucursalData.latitud ? parseFloat(sucursalData.latitud) : null,
-                    longitud: sucursalData.longitud ? parseFloat(sucursalData.longitud) : null,
+                    latitud: sucursalData.latitud ? parseFloat(sucursalData.latitud) : 0,
+                    longitud: sucursalData.longitud ? parseFloat(sucursalData.longitud) : 0,
                     online: sucursalData.online === 1 ? 1 : 0
                 }),
             });
