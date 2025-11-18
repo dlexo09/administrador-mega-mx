@@ -27,6 +27,10 @@ import CardsStreamingDetail from "../pages/CardsStreamingDetail";
 import TarifarioImportar from "../pages/TarifarioImportar";
 import TarifarioLista from "../pages/TarifarioLista";
 import TarifarioAuditoria from "../pages/TarifarioAuditoria";
+import CisList from "../pages/CisList";
+import CisNuevo from "../pages/CisNuevo";
+import CisDetalle from "../pages/CisDetalle";
+import CisEditar from "../pages/CisEditar";
 
 
 import CuponeraSection from "../pages/CuponeraSection";
@@ -108,19 +112,19 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                 >
                   Sucursales
                 </button>
-                
+
                 {/* <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
                   onClick={() => navigate("/regiones")}
                 >
                   Regiones
-                </button>
+                </button>*/}
                 <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
                   onClick={() => navigate("/cis")}
                 >
                   CIS
-                </button> */}
+                </button>
               </SidebarMenu>
 
               <SidebarMenu title="Menú Tarifario">
@@ -210,14 +214,14 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
                   Gestionar Trivias
                 </button>
               </SidebarMenu>
-              
+
               <SidebarMenu title="Footer">
                 <button
                   className="block w-full text-left px-2 py-1 rounded hover:bg-gray-100"
                   onClick={() => navigate("/redesSociales")}
                 >
                   Redes Sociales
-                </button> 
+                </button>
               </SidebarMenu>
             </>
           )}
@@ -339,6 +343,12 @@ export default function Dashboard({ onLogout, userRole = "admin" }) {
           <Route path="/redesSociales/:id" element={<SocialMediaDetail />} />
           <Route path="/redesSociales/editar/:id" element={<SocialMediaEditar />} />
           <Route path="/redesSociales/nuevo" element={<SocialMediaNuevo />} />
+
+          {/* CIS */}
+          <Route path="/cis" element={<CisList />} />
+          <Route path="/cis/nuevo" element={<CisNuevo />} />
+          <Route path="/cis/:id" element={<CisDetalle />} />
+          <Route path="/cis/editar/:id" element={<CisEditar />} />
 
           {/* Ruta para cualquier otra dirección no definida */}
           <Route path="*" element={
